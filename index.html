@@ -166,6 +166,21 @@
     font-weight: 300;
   }
 
+  /* Char count */
+  .char-count {
+    font-size: 11px;
+    color: var(--ink-light);
+    text-align: right;
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+    font-family: var(--font-sans);
+    transition: color 0.3s;
+  }
+  .char-count.warn { color: #b8956a; }
+  .char-count.danger { color: var(--accent); }
+  .char-count .label { margin-right: 4px; }
+  .char-count .num { font-weight: 500; }
+
   /* Theme selector */
   .theme-row {
     display: flex;
@@ -623,6 +638,7 @@
       <div class="field-group">
         <label>信 <span class="optional">（正文）</span></label>
         <textarea id="letterBody" placeholder="在这里写下你想说的话..." maxlength="3000"></textarea>
+        <div class="char-count" id="charCount"><span class="label">已写</span><span class="num" id="charNum">0</span> 字 · 建议 800 字以内</div>
       </div>
       <div class="field-group">
         <label>署名 <span class="optional">（你的名字，可选）</span></label>
@@ -773,9 +789,40 @@ function applyTheme(themeName) {
   document.documentElement.style.setProperty('--border', t.border);
 }
 
-// ============ VALIDATION ============
+// ============ VALIDATION & CHAR COUNT ============
+const SAFE_CHARS = 800;
+const WARN_CHARS = 1000;
+const MAX_SAFE_URL = 1800;
+
 function checkValid() {
+  const len = letterBody.value.length;
   btnGenerate.disabled = letterBody.value.trim().length === 0;
+
+  // Update char count display
+  const numEl = document.getElementById('charNum');
+  const countEl = document.getElementById('charCount');
+  if (numEl && countEl) {
+    numEl.textContent = len;
+
+    // Estimate compressed length
+    const testObj = { v: 1, to: '', body: letterBody.value, from: '', theme: 'warm', date: '' };
+    const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(testObj));
+    const estLen = compressed.length;
+
+    if (estLen > MAX_SAFE_URL) {
+      countEl.className = 'char-count danger';
+      countEl.innerHTML = `<span class="label">已写</span><span class="num">${len}</span> 字 · 压缩后约 ${estLen} 字符 · <b>链接可能过长，建议精简</b>`;
+    } else if (len > WARN_CHARS) {
+      countEl.className = 'char-count warn';
+      countEl.innerHTML = `<span class="label">已写</span><span class="num">${len}</span> 字 · 压缩后约 ${estLen} 字符 · 接近上限`;
+    } else if (len > SAFE_CHARS) {
+      countEl.className = 'char-count warn';
+      countEl.innerHTML = `<span class="label">已写</span><span class="num">${len}</span> 字 · 压缩后约 ${estLen} 字符 · 建议精简`;
+    } else {
+      countEl.className = 'char-count';
+      countEl.innerHTML = `<span class="label">已写</span><span class="num">${len}</span> 字 · 压缩后约 ${estLen} 字符`;
+    }
+  }
 }
 
 letterBody.addEventListener('input', checkValid);
@@ -852,6 +899,12 @@ document.getElementById('btnNewLetter').addEventListener('click', () => {
   paperEl.style.display = '';
   resultSection.classList.remove('show');
   btnGenerate.style.display = '';
+  // Reset char count
+  const countEl = document.getElementById('charCount');
+  if (countEl) {
+    countEl.className = 'char-count';
+    countEl.innerHTML = '<span class="label">已写</span><span class="num" id="charNum">0</span> 字 · 建议 800 字以内';
+  }
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
