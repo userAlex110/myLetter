@@ -1,0 +1,728 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>寄信 - 把说不出口的话，藏进一个二维码里</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  :root {
+    --paper: #faf6f0;
+    --ink: #3d322b;
+    --ink-light: #8b7a6b;
+    --accent: #c44536;
+    --accent-soft: #e8a598;
+    --gold: #b8956a;
+    --bg: #f5f0e8;
+    --card: #fffef9;
+    --border: #e0d5c7;
+    --shadow: 0 2px 24px rgba(60,40,20,0.08);
+    --font-serif: 'Georgia', 'Noto Serif SC', 'STSong', 'SimSun', serif;
+    --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: var(--font-sans);
+    background: var(--bg);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background-image: radial-gradient(ellipse at 50% 0%, rgba(180,150,120,0.08) 0%, transparent 70%);
+  }
+
+  .app-container {
+    width: 100%;
+    max-width: 520px;
+    position: relative;
+  }
+
+  /* ============ SHARED HEADER ============ */
+  .app-header {
+    text-align: center;
+    margin-bottom: 28px;
+  }
+  .app-header .icon {
+    font-size: 36px;
+    display: block;
+    margin-bottom: 6px;
+  }
+  .app-header h1 {
+    font-family: var(--font-serif);
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: 2px;
+  }
+  .app-header .sub {
+    font-size: 12px;
+    color: var(--ink-light);
+    margin-top: 4px;
+    letter-spacing: 1px;
+  }
+
+  /* ============ WRITE MODE ============ */
+  .write-mode { display: block; }
+  .read-mode { display: none; }
+
+  .paper {
+    background: var(--card);
+    border-radius: 8px;
+    padding: 36px 32px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .paper::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 40px; bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, rgba(180,150,120,0.15) 10%, rgba(180,150,120,0.15) 90%, transparent);
+  }
+  .paper::after {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: repeating-linear-gradient(
+      transparent, transparent 27px, rgba(180,150,120,0.06) 27px, rgba(180,150,120,0.06) 28px
+    );
+    pointer-events: none;
+    border-radius: 8px;
+  }
+
+  .field-group {
+    margin-bottom: 18px;
+    position: relative;
+    z-index: 1;
+  }
+  .field-group label {
+    display: block;
+    font-size: 11px;
+    color: var(--ink-light);
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    margin-bottom: 6px;
+  }
+  .field-group input,
+  .field-group textarea {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid var(--border);
+    background: transparent;
+    font-family: var(--font-serif);
+    font-size: 15px;
+    color: var(--ink);
+    padding: 8px 4px;
+    outline: none;
+    transition: border-color 0.3s;
+    line-height: 1.7;
+  }
+  .field-group input:focus,
+  .field-group textarea:focus {
+    border-bottom-color: var(--accent);
+  }
+  .field-group textarea {
+    resize: none;
+    min-height: 200px;
+  }
+  .field-group input::placeholder,
+  .field-group textarea::placeholder {
+    color: #ccc5bb;
+  }
+
+  /* Theme selector */
+  .theme-selector {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 1;
+  }
+  .theme-dot {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+  }
+  .theme-dot.active { border-color: var(--ink); transform: scale(1.15); }
+  .theme-dot.warm { background: #faf6f0; border: 2px solid #d4c5b2; }
+  .theme-dot.cool { background: #f2f6fa; border: 2px solid #c5d0dc; }
+  .theme-dot.pink { background: #faf4f6; border: 2px solid #e0c8d0; }
+  .theme-dot.mint { background: #f4faf6; border: 2px solid #c5dcd0; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 12px 28px;
+    border-radius: 6px;
+    font-size: 14px;
+    font-family: var(--font-sans);
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+  }
+  .btn-primary {
+    background: var(--accent);
+    color: #fff;
+    width: 100%;
+  }
+  .btn-primary:hover { background: #b33a2e; }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary {
+    background: transparent;
+    color: var(--ink-light);
+    border: 1px solid var(--border);
+  }
+  .btn-secondary:hover { background: rgba(0,0,0,0.03); }
+
+  .btn-row {
+    display: flex;
+    gap: 10px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ============ QR CARD (after generation) ============ */
+  .qr-card-section {
+    display: none;
+    margin-top: 24px;
+    animation: fadeInUp 0.5s ease;
+  }
+  .qr-card-section.show { display: block; }
+
+  .qr-card {
+    background: var(--card);
+    border-radius: 12px;
+    padding: 28px;
+    text-align: center;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  .qr-card .card-title {
+    font-family: var(--font-serif);
+    font-size: 15px;
+    color: var(--ink);
+    margin-bottom: 4px;
+    letter-spacing: 1px;
+  }
+  .qr-card .card-hint {
+    font-size: 11px;
+    color: var(--ink-light);
+    margin-bottom: 20px;
+  }
+  .qr-card .qr-wrapper {
+    display: inline-block;
+    padding: 12px;
+    background: #fff;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+  }
+  .qr-card .qr-wrapper canvas,
+  .qr-card .qr-wrapper img {
+    display: block;
+  }
+  .qr-card .card-footer {
+    margin-top: 16px;
+    font-size: 11px;
+    color: var(--ink-light);
+    letter-spacing: 0.5px;
+  }
+  .qr-card .card-url {
+    font-family: monospace;
+    font-size: 10px;
+    color: var(--ink-light);
+    word-break: break-all;
+    margin-top: 6px;
+    opacity: 0.7;
+  }
+
+  .print-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+  }
+
+  /* ============ READ MODE ============ */
+  .read-mode .letter-stage {
+    min-height: 70vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .letter-paper {
+    background: var(--card);
+    border-radius: 8px;
+    padding: 48px 36px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    width: 100%;
+    max-width: 500px;
+    position: relative;
+    animation: paperAppear 0.8s ease;
+  }
+
+  .letter-paper .letter-title {
+    font-family: var(--font-serif);
+    font-size: 20px;
+    color: var(--ink);
+    text-align: center;
+    margin-bottom: 32px;
+    letter-spacing: 2px;
+  }
+
+  .letter-paper .letter-body {
+    font-family: var(--font-serif);
+    font-size: 16px;
+    line-height: 2;
+    color: var(--ink);
+    white-space: pre-wrap;
+    word-break: break-word;
+    min-height: 60px;
+  }
+
+  .letter-paper .letter-body .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 18px;
+    background: var(--accent);
+    margin-left: 2px;
+    vertical-align: text-bottom;
+    animation: blink 0.8s infinite;
+  }
+
+  .letter-paper .letter-signature {
+    text-align: right;
+    margin-top: 40px;
+    font-family: var(--font-serif);
+    font-size: 15px;
+    color: var(--ink);
+    opacity: 0;
+    transition: opacity 1s ease;
+  }
+  .letter-paper .letter-signature.show { opacity: 1; }
+
+  .letter-paper .letter-date {
+    text-align: right;
+    font-size: 12px;
+    color: var(--ink-light);
+    margin-top: 6px;
+    opacity: 0;
+    transition: opacity 1s ease 0.5s;
+  }
+  .letter-paper .letter-date.show { opacity: 1; }
+
+  .read-footer {
+    text-align: center;
+    margin-top: 32px;
+    opacity: 0;
+    animation: fadeIn 1s ease 2s forwards;
+  }
+  .read-footer .hint {
+    font-size: 12px;
+    color: var(--ink-light);
+    margin-bottom: 10px;
+  }
+
+  /* ============ ANIMATIONS ============ */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes paperAppear {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  @keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+  }
+
+  /* ============ PRINT STYLES ============ */
+  @media print {
+    body { background: #fff; padding: 0; }
+    .app-header, .write-mode, .read-footer, .print-actions, .btn-row { display: none !important; }
+    .qr-card-section { display: block !important; margin: 0; }
+    .qr-card {
+      box-shadow: none;
+      border: 2px solid #ccc;
+      page-break-inside: avoid;
+      max-width: 100%;
+    }
+    .qr-card .card-url { display: block !important; }
+  }
+
+  /* ============ RESPONSIVE ============ */
+  @media (max-width: 480px) {
+    .paper { padding: 24px 20px; }
+    .letter-paper { padding: 32px 24px; }
+    .letter-paper .letter-body { font-size: 15px; line-height: 1.9; }
+  }
+
+  /* Error / not found */
+  .error-state {
+    text-align: center;
+    padding: 60px 20px;
+  }
+  .error-state .emoji { font-size: 48px; margin-bottom: 16px; }
+  .error-state h2 {
+    font-family: var(--font-serif);
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .error-state p { font-size: 13px; color: var(--ink-light); }
+</style>
+</head>
+<body>
+<div class="app-container">
+  <!-- ============ WRITE MODE ============ -->
+  <div class="write-mode" id="writeMode">
+    <div class="app-header">
+      <span class="icon">✉️</span>
+      <h1>寄 信</h1>
+      <div class="sub">把说不出口的话，藏进一个二维码里</div>
+    </div>
+
+    <div class="paper" id="paperEl">
+      <div class="field-group">
+        <label>收信人</label>
+        <input type="text" id="letterTo" placeholder="对方的昵称或名字（可选）" maxlength="50">
+      </div>
+      <div class="field-group">
+        <label>信件内容</label>
+        <textarea id="letterBody" placeholder="在这里写下你想说的话..." maxlength="3000"></textarea>
+      </div>
+      <div class="field-group">
+        <label>你的署名</label>
+        <input type="text" id="letterFrom" placeholder="你的名字或昵称（可选）" maxlength="50">
+      </div>
+
+      <div class="theme-selector">
+        <span style="font-size:11px;color:var(--ink-light);line-height:28px;margin-right:6px;">信纸</span>
+        <div class="theme-dot warm active" data-theme="warm" title="暖光"></div>
+        <div class="theme-dot cool" data-theme="cool" title="静谧蓝"></div>
+        <div class="theme-dot pink" data-theme="pink" title="樱花粉"></div>
+        <div class="theme-dot mint" data-theme="mint" title="薄荷绿"></div>
+      </div>
+
+      <button class="btn btn-primary" id="btnGenerate" disabled>
+        <span>✨</span> 生成我的信
+      </button>
+    </div>
+
+    <!-- QR Card (hidden until generation) -->
+    <div class="qr-card-section" id="qrCardSection">
+      <div class="qr-card" id="qrCard">
+        <div class="card-title" id="cardTitle">致 · 一封信</div>
+        <div class="card-hint">扫描二维码，阅读这封信</div>
+        <div class="qr-wrapper" id="qrContainer"></div>
+        <div class="card-footer">用手机相机扫一扫</div>
+        <div class="card-url" id="cardUrl"></div>
+      </div>
+      <div class="print-actions">
+        <button class="btn btn-secondary" onclick="window.print()" style="flex:1">
+          🖨️ 打印卡片
+        </button>
+        <button class="btn btn-secondary" id="btnCopyLink" style="flex:1">
+          📋 复制链接
+        </button>
+      </div>
+      <button class="btn btn-secondary" id="btnNewLetter" style="width:100%;margin-top:10px;">
+        ✍️ 再写一封
+      </button>
+    </div>
+  </div>
+
+  <!-- ============ READ MODE ============ -->
+  <div class="read-mode" id="readMode">
+    <div class="letter-stage">
+      <div class="letter-paper" id="letterPaper">
+        <div class="letter-title" id="letterTitle"></div>
+        <div class="letter-body" id="letterBodyDisplay"></div>
+        <div class="letter-signature" id="letterSignature"></div>
+        <div class="letter-date" id="letterDate"></div>
+      </div>
+    </div>
+    <div class="read-footer">
+      <div class="hint">💡 这也是一封用「寄信」App 发送的隐藏信件</div>
+      <button class="btn btn-secondary" onclick="location.hash=''">
+        ✍️ 我也要写一封
+      </button>
+    </div>
+  </div>
+
+  <!-- Error state -->
+  <div class="error-state" id="errorState" style="display:none;">
+    <div class="emoji">📭</div>
+    <h2>这封信好像不见了</h2>
+    <p>链接可能已过期或被损坏</p>
+    <button class="btn btn-secondary" onclick="location.hash=''" style="margin-top:20px;">
+      ← 回到首页
+    </button>
+  </div>
+</div>
+
+<script>
+// ============ APP STATE ============
+const themes = {
+  warm:  { card: '#fffef9', bg: '#faf6f0', accent: '#c44536', ink: '#3d322b', border: '#e0d5c7' },
+  cool:  { card: '#fafcfe', bg: '#f2f6fa', accent: '#4a7c96', ink: '#2c3e4f', border: '#d0dae4' },
+  pink:  { card: '#fffafb', bg: '#faf4f6', accent: '#c4657a', ink: '#4a2c34', border: '#e8d4da' },
+  mint:  { card: '#fafefc', bg: '#f4faf6', accent: '#5a8a72', ink: '#2c3e34', border: '#d0e4d8' }
+};
+
+let currentTheme = 'warm';
+let currentLetterUrl = '';
+
+// ============ DOM REFS ============
+const writeMode = document.getElementById('writeMode');
+const readMode = document.getElementById('readMode');
+const errorState = document.getElementById('errorState');
+const paperEl = document.getElementById('paperEl');
+const letterBody = document.getElementById('letterBody');
+const letterTo = document.getElementById('letterTo');
+const letterFrom = document.getElementById('letterFrom');
+const btnGenerate = document.getElementById('btnGenerate');
+const qrCardSection = document.getElementById('qrCardSection');
+const qrContainer = document.getElementById('qrContainer');
+const cardTitle = document.getElementById('cardTitle');
+const cardUrl = document.getElementById('cardUrl');
+
+// ============ THEME SWITCHING ============
+document.querySelectorAll('.theme-dot').forEach(dot => {
+  dot.addEventListener('click', () => {
+    document.querySelectorAll('.theme-dot').forEach(d => d.classList.remove('active'));
+    dot.classList.add('active');
+    currentTheme = dot.dataset.theme;
+    applyTheme(currentTheme);
+  });
+});
+
+function applyTheme(themeName) {
+  const t = themes[themeName];
+  document.documentElement.style.setProperty('--card', t.card);
+  document.documentElement.style.setProperty('--bg', t.bg);
+  document.documentElement.style.setProperty('--accent', t.accent);
+  document.documentElement.style.setProperty('--ink', t.ink);
+  document.documentElement.style.setProperty('--border', t.border);
+}
+
+// ============ VALIDATION ============
+function checkValid() {
+  const hasContent = letterBody.value.trim().length > 0;
+  btnGenerate.disabled = !hasContent;
+}
+
+letterBody.addEventListener('input', checkValid);
+letterTo.addEventListener('input', checkValid);
+
+// ============ GENERATE LETTER ============
+btnGenerate.addEventListener('click', () => {
+  const letter = {
+    v: 1, // version
+    to: letterTo.value.trim(),
+    body: letterBody.value.trim(),
+    from: letterFrom.value.trim(),
+    theme: currentTheme,
+    date: new Date().toISOString().split('T')[0]
+  };
+
+  const json = JSON.stringify(letter);
+  const compressed = LZString.compressToEncodedURIComponent(json);
+  const url = window.location.origin + window.location.pathname + '#read/' + compressed;
+
+  currentLetterUrl = url;
+
+  // Show QR card
+  qrContainer.innerHTML = '';
+  new QRCode(qrContainer, {
+    text: url,
+    width: 200,
+    height: 200,
+    colorDark: themes[currentTheme].ink,
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  // Update card info
+  const recipient = letter.to || '亲爱的朋友';
+  cardTitle.textContent = '致 ' + recipient;
+  cardUrl.textContent = url;
+
+  // Show card, hide paper
+  paperEl.style.display = 'none';
+  qrCardSection.classList.add('show');
+  btnGenerate.style.display = 'none';
+
+  // Scroll to card
+  qrCardSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+  // Update card theme
+  const t = themes[currentTheme];
+  document.getElementById('qrCard').style.background = t.card;
+  document.getElementById('qrCard').style.borderColor = t.border;
+});
+
+// ============ COPY LINK ============
+document.getElementById('btnCopyLink').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(currentLetterUrl);
+    const btn = document.getElementById('btnCopyLink');
+    const orig = btn.textContent;
+    btn.textContent = '✅ 已复制！';
+    setTimeout(() => { btn.textContent = orig; }, 2000);
+  } catch {
+    // Fallback
+    const input = document.createElement('input');
+    input.value = currentLetterUrl;
+    document.body.appendChild(input);
+    input.select();
+    document.execCommand('copy');
+    document.body.removeChild(input);
+  }
+});
+
+// ============ NEW LETTER ============
+document.getElementById('btnNewLetter').addEventListener('click', () => {
+  letterBody.value = '';
+  letterTo.value = '';
+  letterFrom.value = '';
+  btnGenerate.disabled = true;
+  paperEl.style.display = '';
+  qrCardSection.classList.remove('show');
+  btnGenerate.style.display = '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// ============ READ MODE ============
+function showReadMode(data) {
+  writeMode.style.display = 'none';
+  errorState.style.display = 'none';
+  readMode.style.display = 'block';
+  document.querySelector('.app-header').style.display = 'none';
+
+  // Apply theme
+  applyTheme(data.theme || 'warm');
+
+  // Set letter paper theme
+  const lp = document.getElementById('letterPaper');
+  lp.style.background = themes[data.theme || 'warm'].card;
+  lp.style.borderColor = themes[data.theme || 'warm'].border;
+
+  // Title
+  const recipient = data.to || '亲爱的朋友';
+  document.getElementById('letterTitle').textContent = '致 ' + recipient;
+
+  // Body - typewriter
+  const bodyEl = document.getElementById('letterBodyDisplay');
+  bodyEl.innerHTML = '';
+  const fullText = data.body || '';
+  let charIndex = 0;
+
+  function typeNext() {
+    if (charIndex < fullText.length) {
+      const char = fullText[charIndex];
+      if (char === '\n') {
+        bodyEl.appendChild(document.createElement('br'));
+      } else {
+        bodyEl.appendChild(document.createTextNode(char));
+      }
+      charIndex++;
+      // Vary speed slightly for realism
+      const delay = char === '\n' ? 120 : (char === '，' || char === '。' || char === '…') ? 100 : 45 + Math.random() * 25;
+      setTimeout(typeNext, delay);
+    } else {
+      // Remove cursor
+      const cursor = bodyEl.querySelector('.cursor');
+      if (cursor) cursor.remove();
+      // Show signature
+      showSignature(data);
+    }
+  }
+
+  // Add blinking cursor
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  bodyEl.appendChild(cursor);
+
+  // Start typing after a short delay
+  setTimeout(typeNext, 600);
+
+  // Signature (hidden until typing done)
+  document.getElementById('letterSignature').textContent = '';
+  document.getElementById('letterSignature').classList.remove('show');
+  document.getElementById('letterDate').textContent = '';
+  document.getElementById('letterDate').classList.remove('show');
+}
+
+function showSignature(data) {
+  if (data.from) {
+    const sig = document.getElementById('letterSignature');
+    sig.textContent = '—— ' + data.from;
+    sig.classList.add('show');
+  }
+  const dateEl = document.getElementById('letterDate');
+  dateEl.textContent = data.date || '';
+  dateEl.classList.add('show');
+}
+
+// ============ ROUTER ============
+function route() {
+  const hash = window.location.hash;
+
+  if (!hash) {
+    // Write mode
+    writeMode.style.display = 'block';
+    readMode.style.display = 'none';
+    errorState.style.display = 'none';
+    document.querySelector('.app-header').style.display = '';
+    return;
+  }
+
+  if (hash.startsWith('#read/')) {
+    try {
+      const encoded = hash.slice(6); // remove '#read/'
+      const json = LZString.decompressFromEncodedURIComponent(encoded);
+      if (!json) throw new Error('Decompress failed');
+      const data = JSON.parse(json);
+      if (!data.body) throw new Error('No body');
+      showReadMode(data);
+    } catch (e) {
+      console.error('Failed to decode letter:', e);
+      writeMode.style.display = 'none';
+      readMode.style.display = 'none';
+      errorState.style.display = 'block';
+      document.querySelector('.app-header').style.display = 'none';
+    }
+    return;
+  }
+
+  // Unknown hash - show write mode
+  location.hash = '';
+}
+
+// Listen for hash changes
+window.addEventListener('hashchange', route);
+
+// Initial route
+route();
+</script>
+</body>
+</html>
