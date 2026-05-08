@@ -4,14 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>寄信 — 把说不出口的话，藏进一个二维码里</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
 <style>
   :root {
-    /* Warm theme (default) */
     --paper: #faf6f0;
     --ink: #3d322b;
     --ink-light: #8b7a6b;
@@ -255,6 +253,11 @@
     transform: none;
   }
   .btn-primary:disabled::after { display: none; }
+  .btn-primary.loading::after { display: none; }
+  .btn-primary.loading {
+    background: #ccc5bb;
+    cursor: wait;
+  }
 
   .btn-outline {
     background: transparent;
@@ -269,7 +272,7 @@
     background: rgba(0,0,0,0.02);
   }
 
-  .btn-row {
+  .action-row {
     display: flex;
     gap: 10px;
     margin-top: 16px;
@@ -340,12 +343,6 @@
     margin-top: 4px;
   }
 
-  .action-row {
-    display: flex;
-    gap: 10px;
-    margin-top: 16px;
-  }
-
   /* ============ READ MODE ============ */
   .read-mode .letter-stage {
     min-height: 60vh;
@@ -364,11 +361,6 @@
     max-width: 500px;
     position: relative;
     animation: paperAppear 0.8s ease;
-    background-image:
-      linear-gradient(to right, rgba(200,180,150,0.06) 40px, transparent 40px),
-      repeating-linear-gradient(
-        transparent, transparent 31px, rgba(180,150,120,0.04) 31px, rgba(180,150,120,0.04) 32px
-      );
   }
   .letter-paper::before {
     content: '';
@@ -452,7 +444,7 @@
     letter-spacing: 0.5px;
   }
 
-  /* ============ PRINT CARD (for print dialog) ============ */
+  /* ============ PRINT OVERLAY ============ */
   .print-overlay {
     display: none;
     position: fixed;
@@ -515,7 +507,6 @@
   }
   .print-card .print-close:hover { color: #3d322b; }
 
-  /* Print action buttons inside overlay */
   .print-actions-overlay {
     display: flex;
     gap: 10px;
@@ -560,8 +551,8 @@
     .write-mode,
     .read-mode,
     .read-footer,
-    .print-overlay .print-actions-overlay,
-    .print-overlay .print-close,
+    .print-actions-overlay,
+    .print-close,
     .error-state {
       display: none !important;
     }
@@ -585,7 +576,7 @@
   @media (max-width: 480px) {
     body { padding: 20px 16px; }
     .app-header h1 { font-size: 28px; letter-spacing: 4px; }
-    .paper { padding: 28px 24px 24px 36px; }
+    .paper { padding: 28px 24px 24px; }
     .letter-paper { padding: 36px 28px; }
     .letter-paper .letter-title { font-size: 20px; }
     .letter-paper .letter-body { font-size: 15px; line-height: 30px; }
@@ -607,10 +598,7 @@
     letter-spacing: 2px;
   }
   .error-state p { font-size: 13px; color: var(--ink-light); }
-  .error-state .back-btn {
-    margin-top: 24px;
-    display: inline-block;
-  }
+  .error-state .back-btn { margin-top: 24px; display: inline-block; }
 </style>
 </head>
 <body>
@@ -733,6 +721,11 @@
 </div>
 
 <script>
+// ============ CONFIG ============
+// REPLACE THIS with your Cloudflare Worker URL after deployment
+const API_BASE = 'https://letter-api.YOUR_SUBDOMAIN.workers.dev';
+// Example: 'https://letter-api.useralex110.workers.dev'
+
 // ============ THEMES ============
 const themes = {
   warm:  { card: '#fffef9', bg: '#f5f0e8', accent: '#c44536', ink: '#3d322b', border: '#e0d5c7' },
@@ -742,7 +735,7 @@ const themes = {
 };
 
 let currentTheme = 'warm';
-let currentLetterUrl = '';
+let currentToken = '';
 let currentLetterData = null;
 
 // ============ DOM ============
@@ -791,9 +784,13 @@ function checkValid() {
 letterBody.addEventListener('input', checkValid);
 
 // ============ GENERATE LETTER ============
-btnGenerate.addEventListener('click', () => {
+btnGenerate.addEventListener('click', async () => {
+  const btn = btnGenerate;
+  btn.disabled = true;
+  btn.classList.add('loading');
+  btn.textContent = '正在寄出...';
+
   const letter = {
-    v: 1,
     to: letterTo.value.trim(),
     body: letterBody.value.trim(),
     from: letterFrom.value.trim(),
@@ -801,51 +798,65 @@ btnGenerate.addEventListener('click', () => {
     date: new Date().toISOString().split('T')[0]
   };
 
-  const json = JSON.stringify(letter);
-  const compressed = LZString.compressToEncodedURIComponent(json);
-  const url = window.location.origin + window.location.pathname + '#read/' + compressed;
+  try {
+    const res = await fetch(API_BASE + '/api/save', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(letter)
+    });
 
-  currentLetterUrl = url;
-  currentLetterData = letter;
+    const data = await res.json();
+    if (!data.ok || !data.id) {
+      throw new Error(data.error || 'Save failed');
+    }
 
-  // Generate QR
-  qrFrame.innerHTML = '';
-  new QRCode(qrFrame, {
-    text: url,
-    width: 180,
-    height: 180,
-    colorDark: themes[currentTheme].ink,
-    colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.M
-  });
+    currentToken = data.id;
+    currentLetterData = letter;
 
-  // Update labels
-  const recipient = letter.to || '亲爱的朋友';
-  qrLabel.textContent = '致 ' + recipient;
+    const readUrl = window.location.origin + window.location.pathname + '#token/' + currentToken;
 
-  // Show result
-  paperEl.style.display = 'none';
-  resultSection.classList.add('show');
-  btnGenerate.style.display = 'none';
+    // Generate QR
+    qrFrame.innerHTML = '';
+    new QRCode(qrFrame, {
+      text: readUrl,
+      width: 180,
+      height: 180,
+      colorDark: themes[currentTheme].ink,
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
 
-  // Apply theme to result card
-  qrDisplay.style.background = themes[currentTheme].card;
-  qrDisplay.style.borderColor = themes[currentTheme].border;
+    const recipient = letter.to || '亲爱的朋友';
+    qrLabel.textContent = '致 ' + recipient;
 
-  resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    paperEl.style.display = 'none';
+    resultSection.classList.add('show');
+    btn.style.display = 'none';
+
+    qrDisplay.style.background = themes[currentTheme].card;
+    qrDisplay.style.borderColor = themes[currentTheme].border;
+
+    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } catch (err) {
+    alert('寄信失败：' + err.message + '\n\n请确认 API_BASE 已配置为你的 Worker 地址');
+    btn.disabled = false;
+    btn.classList.remove('loading');
+    btn.textContent = '生成我的信';
+  }
 });
 
 // ============ COPY LINK ============
 document.getElementById('btnCopyLink').addEventListener('click', async () => {
+  const url = window.location.origin + window.location.pathname + '#token/' + currentToken;
   try {
-    await navigator.clipboard.writeText(currentLetterUrl);
+    await navigator.clipboard.writeText(url);
     const btn = document.getElementById('btnCopyLink');
     const orig = btn.textContent;
     btn.textContent = '已复制';
     setTimeout(() => { btn.textContent = orig; }, 2000);
   } catch {
     const input = document.createElement('input');
-    input.value = currentLetterUrl;
+    input.value = url;
     document.body.appendChild(input);
     input.select();
     document.execCommand('copy');
@@ -859,6 +870,8 @@ document.getElementById('btnNewLetter').addEventListener('click', () => {
   letterTo.value = '';
   letterFrom.value = '';
   btnGenerate.disabled = true;
+  btnGenerate.classList.remove('loading');
+  btnGenerate.textContent = '生成我的信';
   paperEl.style.display = '';
   resultSection.classList.remove('show');
   btnGenerate.style.display = '';
@@ -867,11 +880,12 @@ document.getElementById('btnNewLetter').addEventListener('click', () => {
 
 // ============ PRINT OVERLAY ============
 function openPrintOverlay() {
-  if (!currentLetterData) return;
+  if (!currentToken) return;
 
   printQr.innerHTML = '';
+  const readUrl = window.location.origin + window.location.pathname + '#token/' + currentToken;
   new QRCode(printQr, {
-    text: currentLetterUrl,
+    text: readUrl,
     width: 160,
     height: 160,
     colorDark: '#3d322b',
@@ -879,9 +893,9 @@ function openPrintOverlay() {
     correctLevel: QRCode.CorrectLevel.M
   });
 
-  const recipient = currentLetterData.to || '亲爱的朋友';
+  const recipient = currentLetterData?.to || '亲爱的朋友';
   printHeader.textContent = '致 ' + recipient;
-  printFooter.textContent = currentLetterUrl;
+  printFooter.textContent = readUrl;
 
   printOverlay.classList.add('show');
 }
@@ -891,71 +905,80 @@ function closePrintOverlay() {
 }
 
 function doPrint() {
-  // Hide action buttons for print
   const actions = printCard.querySelector('.print-actions-overlay');
-  if (actions) actions.style.display = 'none';
   const closeBtn = printCard.querySelector('.print-close');
+  if (actions) actions.style.display = 'none';
   if (closeBtn) closeBtn.style.display = 'none';
 
   window.print();
 
-  // Restore after print dialog
   setTimeout(() => {
     if (actions) actions.style.display = '';
     if (closeBtn) closeBtn.style.display = '';
   }, 100);
 }
 
-// Close overlay on backdrop click
 printOverlay.addEventListener('click', (e) => {
   if (e.target === printOverlay) closePrintOverlay();
 });
 
 // ============ READ MODE ============
-function showReadMode(data) {
+async function showReadMode(token) {
   writeMode.style.display = 'none';
   errorState.style.display = 'none';
   readMode.style.display = 'block';
   document.querySelector('.app-header').style.display = 'none';
 
-  applyTheme(data.theme || 'warm');
-
-  const lp = document.getElementById('letterPaper');
-  lp.style.background = themes[data.theme || 'warm'].card;
-
-  const recipient = data.to || '亲爱的朋友';
-  document.getElementById('letterTitle').textContent = '致 ' + recipient;
-
-  // Typewriter effect
-  const bodyEl = document.getElementById('letterBodyDisplay');
-  bodyEl.innerHTML = '';
-  const fullText = data.body || '';
-  let charIndex = 0;
-
-  function typeNext() {
-    if (charIndex < fullText.length) {
-      const char = fullText[charIndex];
-      if (char === '\n') {
-        bodyEl.appendChild(document.createElement('br'));
-      } else {
-        bodyEl.appendChild(document.createTextNode(char));
-      }
-      charIndex++;
-      const delay = char === '\n' ? 140 : (char === '，' || char === '。' || char === '…' || char === '！' || char === '？') ? 120 : 40 + Math.random() * 30;
-      setTimeout(typeNext, delay);
-    } else {
-      const cursor = bodyEl.querySelector('.cursor');
-      if (cursor) cursor.remove();
-      showSignature(data);
+  try {
+    const res = await fetch(API_BASE + '/api/read/' + token);
+    if (!res.ok) {
+      throw new Error('Not found');
     }
+    const data = await res.json();
+
+    applyTheme(data.theme || 'warm');
+
+    const lp = document.getElementById('letterPaper');
+    lp.style.background = themes[data.theme || 'warm'].card;
+
+    const recipient = data.to || '亲爱的朋友';
+    document.getElementById('letterTitle').textContent = '致 ' + recipient;
+
+    // Typewriter effect
+    const bodyEl = document.getElementById('letterBodyDisplay');
+    bodyEl.innerHTML = '';
+    const fullText = data.body || '';
+    let charIndex = 0;
+
+    function typeNext() {
+      if (charIndex < fullText.length) {
+        const char = fullText[charIndex];
+        if (char === '\n') {
+          bodyEl.appendChild(document.createElement('br'));
+        } else {
+          bodyEl.appendChild(document.createTextNode(char));
+        }
+        charIndex++;
+        const delay = char === '\n' ? 140 : (char === '，' || char === '。' || char === '…' || char === '！' || char === '？') ? 120 : 40 + Math.random() * 30;
+        setTimeout(typeNext, delay);
+      } else {
+        const cursor = bodyEl.querySelector('.cursor');
+        if (cursor) cursor.remove();
+        showSignature(data);
+      }
+    }
+
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    bodyEl.appendChild(cursor);
+    setTimeout(typeNext, 500);
+
+    document.getElementById('letterClose').classList.remove('show');
+  } catch (err) {
+    readMode.style.display = 'none';
+    errorState.style.display = 'block';
+    document.querySelector('.app-header').style.display = 'none';
   }
-
-  const cursor = document.createElement('span');
-  cursor.className = 'cursor';
-  bodyEl.appendChild(cursor);
-  setTimeout(typeNext, 500);
-
-  document.getElementById('letterClose').classList.remove('show');
 }
 
 function showSignature(data) {
@@ -981,22 +1004,12 @@ function route() {
     return;
   }
 
-  if (hash.startsWith('#read/')) {
-    try {
-      const encoded = hash.slice(6);
-      const json = LZString.decompressFromEncodedURIComponent(encoded);
-      if (!json) throw new Error('Decompress failed');
-      const data = JSON.parse(json);
-      if (!data.body) throw new Error('No body');
-      showReadMode(data);
-    } catch (e) {
-      console.error('Failed to decode letter:', e);
-      writeMode.style.display = 'none';
-      readMode.style.display = 'none';
-      errorState.style.display = 'block';
-      document.querySelector('.app-header').style.display = 'none';
+  if (hash.startsWith('#token/')) {
+    const token = hash.slice(7);
+    if (token.length >= 4) {
+      showReadMode(token);
+      return;
     }
-    return;
   }
 
   location.hash = '';
