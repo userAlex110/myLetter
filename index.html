@@ -3,11 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>寄信 - 把说不出口的话，藏进一个二维码里</title>
+<title>寄信 — 把说不出口的话，藏进一个二维码里</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.5.0/lz-string.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
 <style>
   :root {
+    /* Warm theme (default) */
     --paper: #faf6f0;
     --ink: #3d322b;
     --ink-light: #8b7a6b;
@@ -18,8 +22,10 @@
     --card: #fffef9;
     --border: #e0d5c7;
     --shadow: 0 2px 24px rgba(60,40,20,0.08);
-    --font-serif: 'Georgia', 'Noto Serif SC', 'STSong', 'SimSun', serif;
+    --font-serif: 'Noto Serif SC', 'Georgia', 'STSong', 'SimSun', serif;
+    --font-display: 'Playfair Display', 'Noto Serif SC', serif;
     --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-art: 'ZCOOL XiaoWei', 'Noto Serif SC', serif;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,83 +37,106 @@
     min-height: 100vh;
     display: flex;
     justify-content: center;
-    align-items: center;
-    padding: 20px;
-    background-image: radial-gradient(ellipse at 50% 0%, rgba(180,150,120,0.08) 0%, transparent 70%);
+    align-items: flex-start;
+    padding: 40px 20px;
+    background-image:
+      url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.025'/%3E%3C/svg%3E"),
+      radial-gradient(ellipse at 50% 0%, rgba(180,150,120,0.08) 0%, transparent 70%);
   }
 
   .app-container {
     width: 100%;
-    max-width: 520px;
+    max-width: 540px;
     position: relative;
   }
 
-  /* ============ SHARED HEADER ============ */
+  /* ============ HEADER ============ */
   .app-header {
     text-align: center;
-    margin-bottom: 28px;
+    margin-bottom: 36px;
+    animation: fadeInDown 0.8s ease;
   }
-  .app-header .icon {
-    font-size: 36px;
+  .app-header .envelope-icon {
+    font-size: 42px;
     display: block;
-    margin-bottom: 6px;
+    margin-bottom: 12px;
+    animation: float 3s ease-in-out infinite;
   }
   .app-header h1 {
-    font-family: var(--font-serif);
-    font-size: 22px;
+    font-family: var(--font-art);
+    font-size: 36px;
     font-weight: 400;
     color: var(--ink);
-    letter-spacing: 2px;
+    letter-spacing: 6px;
+    margin-bottom: 8px;
   }
   .app-header .sub {
-    font-size: 12px;
+    font-family: var(--font-serif);
+    font-size: 14px;
     color: var(--ink-light);
-    margin-top: 4px;
-    letter-spacing: 1px;
+    letter-spacing: 1.5px;
+    font-weight: 300;
+  }
+  .app-header .divider {
+    width: 60px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--gold), transparent);
+    margin: 14px auto 0;
   }
 
   /* ============ WRITE MODE ============ */
-  .write-mode { display: block; }
+  .write-mode { display: block; animation: fadeIn 0.6s ease; }
   .read-mode { display: none; }
 
   .paper {
     background: var(--card);
-    border-radius: 8px;
-    padding: 36px 32px;
+    border-radius: 2px;
+    padding: 44px 40px 36px 52px;
     box-shadow: var(--shadow);
-    border: 1px solid var(--border);
     position: relative;
+    background-image:
+      linear-gradient(to right, rgba(200,180,150,0.08) 40px, transparent 40px),
+      repeating-linear-gradient(
+        transparent, transparent 31px, rgba(180,150,120,0.05) 31px, rgba(180,150,120,0.05) 32px
+      );
+    border-top: 4px solid var(--accent);
+    animation: slideUp 0.6s ease;
   }
   .paper::before {
     content: '';
     position: absolute;
-    top: 0; left: 40px; bottom: 0;
-    width: 1px;
-    background: linear-gradient(to bottom, transparent, rgba(180,150,120,0.15) 10%, rgba(180,150,120,0.15) 90%, transparent);
+    top: 0; right: 0;
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 0 48px 48px 0;
+    border-color: transparent var(--border) transparent transparent;
   }
   .paper::after {
     content: '';
     position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    background: repeating-linear-gradient(
-      transparent, transparent 27px, rgba(180,150,120,0.06) 27px, rgba(180,150,120,0.06) 28px
-    );
-    pointer-events: none;
-    border-radius: 8px;
+    top: 0; right: 0;
+    width: 0; height: 0;
+    border-style: solid;
+    border-width: 0 44px 44px 0;
+    border-color: transparent var(--card) transparent transparent;
   }
 
   .field-group {
-    margin-bottom: 18px;
+    margin-bottom: 22px;
     position: relative;
-    z-index: 1;
   }
   .field-group label {
     display: block;
-    font-size: 11px;
+    font-family: var(--font-serif);
+    font-size: 12px;
     color: var(--ink-light);
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
-    margin-bottom: 6px;
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+    font-weight: 500;
+  }
+  .field-group label .optional {
+    font-weight: 300;
+    opacity: 0.6;
   }
   .field-group input,
   .field-group textarea {
@@ -116,139 +145,198 @@
     border-bottom: 1px solid var(--border);
     background: transparent;
     font-family: var(--font-serif);
-    font-size: 15px;
+    font-size: 16px;
     color: var(--ink);
-    padding: 8px 4px;
+    padding: 6px 2px;
     outline: none;
-    transition: border-color 0.3s;
-    line-height: 1.7;
+    transition: border-color 0.3s, padding-left 0.3s;
+    line-height: 1.9;
+    position: relative;
+    z-index: 1;
   }
   .field-group input:focus,
   .field-group textarea:focus {
     border-bottom-color: var(--accent);
+    padding-left: 4px;
   }
   .field-group textarea {
     resize: none;
-    min-height: 200px;
+    min-height: 180px;
+    line-height: 32px;
   }
   .field-group input::placeholder,
   .field-group textarea::placeholder {
-    color: #ccc5bb;
+    color: #c8c0b4;
+    font-style: italic;
+    font-weight: 300;
   }
 
   /* Theme selector */
-  .theme-selector {
+  .theme-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 8px 0 24px;
+  }
+  .theme-label {
+    font-family: var(--font-serif);
+    font-size: 12px;
+    color: var(--ink-light);
+    letter-spacing: 2px;
+  }
+  .theme-dots {
     display: flex;
     gap: 8px;
-    margin-bottom: 20px;
-    position: relative;
-    z-index: 1;
   }
   .theme-dot {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     cursor: pointer;
     border: 2px solid transparent;
-    transition: all 0.2s;
+    transition: all 0.25s ease;
+    position: relative;
   }
-  .theme-dot.active { border-color: var(--ink); transform: scale(1.15); }
-  .theme-dot.warm { background: #faf6f0; border: 2px solid #d4c5b2; }
-  .theme-dot.cool { background: #f2f6fa; border: 2px solid #c5d0dc; }
-  .theme-dot.pink { background: #faf4f6; border: 2px solid #e0c8d0; }
-  .theme-dot.mint { background: #f4faf6; border: 2px solid #c5dcd0; }
+  .theme-dot::after {
+    content: '';
+    position: absolute;
+    inset: -4px;
+    border-radius: 50%;
+    border: 1.5px solid transparent;
+    transition: border-color 0.25s;
+  }
+  .theme-dot.active::after { border-color: var(--ink); }
+  .theme-dot:hover { transform: scale(1.1); }
+  .theme-dot.warm { background: #faf6f0; }
+  .theme-dot.cool { background: #f2f6fa; }
+  .theme-dot.pink { background: #faf4f6; }
+  .theme-dot.mint { background: #f4faf6; }
 
   /* Buttons */
   .btn {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 6px;
-    padding: 12px 28px;
-    border-radius: 6px;
-    font-size: 14px;
-    font-family: var(--font-sans);
+    gap: 8px;
+    padding: 14px 32px;
+    border-radius: 2px;
+    font-size: 15px;
+    font-family: var(--font-serif);
     cursor: pointer;
     border: none;
-    transition: all 0.2s;
-    letter-spacing: 0.5px;
+    transition: all 0.25s ease;
+    letter-spacing: 1px;
+    font-weight: 500;
   }
   .btn-primary {
-    background: var(--accent);
-    color: #fff;
+    background: var(--ink);
+    color: var(--paper);
     width: 100%;
+    position: relative;
+    overflow: hidden;
   }
-  .btn-primary:hover { background: #b33a2e; }
-  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
-  .btn-secondary {
+  .btn-primary::after {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent);
+    transition: left 0.5s ease;
+  }
+  .btn-primary:hover::after { left: 100%; }
+  .btn-primary:hover { background: #2a2018; transform: translateY(-1px); }
+  .btn-primary:disabled {
+    background: #ccc5bb;
+    cursor: not-allowed;
+    transform: none;
+  }
+  .btn-primary:disabled::after { display: none; }
+
+  .btn-outline {
     background: transparent;
     color: var(--ink-light);
     border: 1px solid var(--border);
+    font-size: 13px;
+    padding: 10px 20px;
   }
-  .btn-secondary:hover { background: rgba(0,0,0,0.03); }
+  .btn-outline:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+    background: rgba(0,0,0,0.02);
+  }
 
   .btn-row {
     display: flex;
     gap: 10px;
-    position: relative;
-    z-index: 1;
+    margin-top: 16px;
   }
 
-  /* ============ QR CARD (after generation) ============ */
-  .qr-card-section {
+  /* ============ RESULT SECTION ============ */
+  .result-section {
     display: none;
-    margin-top: 24px;
-    animation: fadeInUp 0.5s ease;
+    margin-top: 28px;
+    animation: fadeInUp 0.6s ease;
   }
-  .qr-card-section.show { display: block; }
+  .result-section.show { display: block; }
 
-  .qr-card {
-    background: var(--card);
-    border-radius: 12px;
-    padding: 28px;
+  .result-header {
     text-align: center;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-  }
-  .qr-card .card-title {
-    font-family: var(--font-serif);
-    font-size: 15px;
-    color: var(--ink);
-    margin-bottom: 4px;
-    letter-spacing: 1px;
-  }
-  .qr-card .card-hint {
-    font-size: 11px;
-    color: var(--ink-light);
     margin-bottom: 20px;
   }
-  .qr-card .qr-wrapper {
-    display: inline-block;
-    padding: 12px;
-    background: #fff;
-    border-radius: 8px;
-    border: 1px solid var(--border);
+  .result-header h2 {
+    font-family: var(--font-art);
+    font-size: 20px;
+    color: var(--ink);
+    letter-spacing: 3px;
+    margin-bottom: 6px;
   }
-  .qr-card .qr-wrapper canvas,
-  .qr-card .qr-wrapper img {
-    display: block;
-  }
-  .qr-card .card-footer {
-    margin-top: 16px;
-    font-size: 11px;
+  .result-header p {
+    font-size: 12px;
     color: var(--ink-light);
-    letter-spacing: 0.5px;
-  }
-  .qr-card .card-url {
-    font-family: monospace;
-    font-size: 10px;
-    color: var(--ink-light);
-    word-break: break-all;
-    margin-top: 6px;
-    opacity: 0.7;
+    letter-spacing: 1px;
   }
 
-  .print-actions {
+  .qr-display {
+    background: var(--card);
+    border-radius: 2px;
+    padding: 36px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    position: relative;
+    border: 1px solid var(--border);
+  }
+  .qr-display .qr-frame {
+    display: inline-block;
+    padding: 16px;
+    background: #fff;
+    border: 1px solid var(--border);
+    position: relative;
+  }
+  .qr-display .qr-frame::before {
+    content: '';
+    position: absolute;
+    top: 4px; left: 4px; right: 4px; bottom: 4px;
+    border: 1px dashed var(--border);
+    pointer-events: none;
+  }
+  .qr-display .qr-frame canvas,
+  .qr-display .qr-frame img {
+    display: block;
+  }
+  .qr-display .qr-label {
+    font-family: var(--font-serif);
+    font-size: 13px;
+    color: var(--ink);
+    margin-top: 16px;
+    letter-spacing: 1px;
+  }
+  .qr-display .qr-hint {
+    font-size: 11px;
+    color: var(--ink-light);
+    margin-top: 4px;
+  }
+
+  .action-row {
     display: flex;
     gap: 10px;
     margin-top: 16px;
@@ -256,37 +344,59 @@
 
   /* ============ READ MODE ============ */
   .read-mode .letter-stage {
-    min-height: 70vh;
+    min-height: 60vh;
     display: flex;
     align-items: center;
     justify-content: center;
+    animation: fadeIn 0.6s ease;
   }
 
   .letter-paper {
     background: var(--card);
-    border-radius: 8px;
-    padding: 48px 36px;
+    border-radius: 2px;
+    padding: 56px 44px;
     box-shadow: var(--shadow);
-    border: 1px solid var(--border);
     width: 100%;
     max-width: 500px;
     position: relative;
     animation: paperAppear 0.8s ease;
+    background-image:
+      linear-gradient(to right, rgba(200,180,150,0.06) 40px, transparent 40px),
+      repeating-linear-gradient(
+        transparent, transparent 31px, rgba(180,150,120,0.04) 31px, rgba(180,150,120,0.04) 32px
+      );
+  }
+  .letter-paper::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+    background: var(--accent);
+  }
+
+  .letter-paper .letter-meta {
+    font-family: var(--font-display);
+    font-size: 11px;
+    color: var(--ink-light);
+    letter-spacing: 2px;
+    text-align: center;
+    margin-bottom: 20px;
+    text-transform: uppercase;
   }
 
   .letter-paper .letter-title {
-    font-family: var(--font-serif);
-    font-size: 20px;
+    font-family: var(--font-art);
+    font-size: 24px;
     color: var(--ink);
     text-align: center;
-    margin-bottom: 32px;
-    letter-spacing: 2px;
+    margin-bottom: 36px;
+    letter-spacing: 4px;
   }
 
   .letter-paper .letter-body {
     font-family: var(--font-serif);
     font-size: 16px;
-    line-height: 2;
+    line-height: 32px;
     color: var(--ink);
     white-space: pre-wrap;
     word-break: break-word;
@@ -303,47 +413,128 @@
     animation: blink 0.8s infinite;
   }
 
-  .letter-paper .letter-signature {
+  .letter-paper .letter-close {
     text-align: right;
-    margin-top: 40px;
-    font-family: var(--font-serif);
-    font-size: 15px;
-    color: var(--ink);
+    margin-top: 48px;
+    padding-top: 24px;
+    border-top: 1px solid var(--border);
     opacity: 0;
-    transition: opacity 1s ease;
+    transition: opacity 1.2s ease;
   }
-  .letter-paper .letter-signature.show { opacity: 1; }
+  .letter-paper .letter-close.show { opacity: 1; }
 
+  .letter-paper .letter-signature {
+    font-family: var(--font-art);
+    font-size: 18px;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
   .letter-paper .letter-date {
-    text-align: right;
     font-size: 12px;
     color: var(--ink-light);
-    margin-top: 6px;
-    opacity: 0;
-    transition: opacity 1s ease 0.5s;
+    letter-spacing: 1px;
   }
-  .letter-paper .letter-date.show { opacity: 1; }
 
   .read-footer {
     text-align: center;
-    margin-top: 32px;
+    margin-top: 36px;
     opacity: 0;
     animation: fadeIn 1s ease 2s forwards;
   }
   .read-footer .hint {
     font-size: 12px;
     color: var(--ink-light);
-    margin-bottom: 10px;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ============ PRINT CARD (for print dialog) ============ */
+  .print-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    z-index: 100;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+  }
+  .print-overlay.show {
+    display: flex;
+  }
+
+  .print-card {
+    background: #fff;
+    width: 360px;
+    padding: 32px;
+    border-radius: 3px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    text-align: center;
+    position: relative;
+    border: 1px solid #d0c8bc;
+  }
+  .print-card .print-header {
+    font-family: var(--font-art);
+    font-size: 18px;
+    color: #3d322b;
+    margin-bottom: 4px;
+    letter-spacing: 3px;
+  }
+  .print-card .print-sub {
+    font-family: var(--font-serif);
+    font-size: 11px;
+    color: #8b7a6b;
+    margin-bottom: 20px;
+    letter-spacing: 1px;
+  }
+  .print-card .print-qr {
+    display: inline-block;
+    padding: 12px;
+    border: 1px solid #d0c8bc;
+    margin-bottom: 16px;
+  }
+  .print-card .print-footer {
+    font-size: 10px;
+    color: #a09080;
+    letter-spacing: 0.5px;
+    word-break: break-all;
+  }
+  .print-card .print-close {
+    position: absolute;
+    top: 8px; right: 12px;
+    font-size: 20px;
+    color: #8b7a6b;
+    cursor: pointer;
+    border: none;
+    background: none;
+    line-height: 1;
+  }
+  .print-card .print-close:hover { color: #3d322b; }
+
+  /* Print action buttons inside overlay */
+  .print-actions-overlay {
+    display: flex;
+    gap: 10px;
+    margin-top: 16px;
+    justify-content: center;
   }
 
   /* ============ ANIMATIONS ============ */
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
+  }
+  @keyframes fadeInDown {
+    from { opacity: 0; transform: translateY(-12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
   }
   @keyframes paperAppear {
     from { opacity: 0; transform: translateY(20px) scale(0.97); }
@@ -353,41 +544,69 @@
     0%, 100% { opacity: 1; }
     50% { opacity: 0; }
   }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-6px); }
+  }
 
   /* ============ PRINT STYLES ============ */
   @media print {
     body { background: #fff; padding: 0; }
-    .app-header, .write-mode, .read-footer, .print-actions, .btn-row { display: none !important; }
-    .qr-card-section { display: block !important; margin: 0; }
-    .qr-card {
-      box-shadow: none;
-      border: 2px solid #ccc;
-      page-break-inside: avoid;
-      max-width: 100%;
+    .app-header,
+    .write-mode,
+    .read-mode,
+    .read-footer,
+    .print-overlay .print-actions-overlay,
+    .print-overlay .print-close,
+    .error-state {
+      display: none !important;
     }
-    .qr-card .card-url { display: block !important; }
+    .print-overlay {
+      display: flex !important;
+      position: static;
+      background: none;
+      padding: 0;
+      justify-content: flex-start;
+      align-items: flex-start;
+    }
+    .print-card {
+      box-shadow: none;
+      border: 1px solid #ccc;
+      margin: 0 auto;
+      page-break-inside: avoid;
+    }
   }
 
   /* ============ RESPONSIVE ============ */
   @media (max-width: 480px) {
-    .paper { padding: 24px 20px; }
-    .letter-paper { padding: 32px 24px; }
-    .letter-paper .letter-body { font-size: 15px; line-height: 1.9; }
+    body { padding: 20px 16px; }
+    .app-header h1 { font-size: 28px; letter-spacing: 4px; }
+    .paper { padding: 28px 24px 24px 36px; }
+    .letter-paper { padding: 36px 28px; }
+    .letter-paper .letter-title { font-size: 20px; }
+    .letter-paper .letter-body { font-size: 15px; line-height: 30px; }
+    .print-card { width: 100%; max-width: 340px; }
   }
 
-  /* Error / not found */
+  /* Error state */
   .error-state {
     text-align: center;
-    padding: 60px 20px;
+    padding: 80px 20px;
+    animation: fadeIn 0.6s ease;
   }
-  .error-state .emoji { font-size: 48px; margin-bottom: 16px; }
+  .error-state .icon { font-size: 52px; margin-bottom: 20px; }
   .error-state h2 {
-    font-family: var(--font-serif);
-    font-size: 18px;
+    font-family: var(--font-art);
+    font-size: 20px;
     color: var(--ink);
-    margin-bottom: 8px;
+    margin-bottom: 10px;
+    letter-spacing: 2px;
   }
   .error-state p { font-size: 13px; color: var(--ink-light); }
+  .error-state .back-btn {
+    margin-top: 24px;
+    display: inline-block;
+  }
 </style>
 </head>
 <body>
@@ -395,58 +614,65 @@
   <!-- ============ WRITE MODE ============ -->
   <div class="write-mode" id="writeMode">
     <div class="app-header">
-      <span class="icon">✉️</span>
+      <span class="envelope-icon">✉️</span>
       <h1>寄 信</h1>
       <div class="sub">把说不出口的话，藏进一个二维码里</div>
+      <div class="divider"></div>
     </div>
 
     <div class="paper" id="paperEl">
       <div class="field-group">
-        <label>收信人</label>
-        <input type="text" id="letterTo" placeholder="对方的昵称或名字（可选）" maxlength="50">
+        <label>致 <span class="optional">（收信人，可选）</span></label>
+        <input type="text" id="letterTo" placeholder="对方的名字" maxlength="50">
       </div>
       <div class="field-group">
-        <label>信件内容</label>
+        <label>信 <span class="optional">（正文）</span></label>
         <textarea id="letterBody" placeholder="在这里写下你想说的话..." maxlength="3000"></textarea>
       </div>
       <div class="field-group">
-        <label>你的署名</label>
-        <input type="text" id="letterFrom" placeholder="你的名字或昵称（可选）" maxlength="50">
+        <label>署名 <span class="optional">（你的名字，可选）</span></label>
+        <input type="text" id="letterFrom" placeholder="你的名字" maxlength="50">
       </div>
 
-      <div class="theme-selector">
-        <span style="font-size:11px;color:var(--ink-light);line-height:28px;margin-right:6px;">信纸</span>
-        <div class="theme-dot warm active" data-theme="warm" title="暖光"></div>
-        <div class="theme-dot cool" data-theme="cool" title="静谧蓝"></div>
-        <div class="theme-dot pink" data-theme="pink" title="樱花粉"></div>
-        <div class="theme-dot mint" data-theme="mint" title="薄荷绿"></div>
+      <div class="theme-row">
+        <span class="theme-label">信纸</span>
+        <div class="theme-dots">
+          <div class="theme-dot warm active" data-theme="warm" title="暖光"></div>
+          <div class="theme-dot cool" data-theme="cool" title="静谧蓝"></div>
+          <div class="theme-dot pink" data-theme="pink" title="樱花粉"></div>
+          <div class="theme-dot mint" data-theme="mint" title="薄荷绿"></div>
+        </div>
       </div>
 
       <button class="btn btn-primary" id="btnGenerate" disabled>
-        <span>✨</span> 生成我的信
+        生成我的信
       </button>
     </div>
 
-    <!-- QR Card (hidden until generation) -->
-    <div class="qr-card-section" id="qrCardSection">
-      <div class="qr-card" id="qrCard">
-        <div class="card-title" id="cardTitle">致 · 一封信</div>
-        <div class="card-hint">扫描二维码，阅读这封信</div>
-        <div class="qr-wrapper" id="qrContainer"></div>
-        <div class="card-footer">用手机相机扫一扫</div>
-        <div class="card-url" id="cardUrl"></div>
+    <!-- Result Section (hidden until generation) -->
+    <div class="result-section" id="resultSection">
+      <div class="result-header">
+        <h2>信已备好</h2>
+        <p>将下方二维码保存或打印，送给对方</p>
       </div>
-      <div class="print-actions">
-        <button class="btn btn-secondary" onclick="window.print()" style="flex:1">
-          🖨️ 打印卡片
+
+      <div class="qr-display" id="qrDisplay">
+        <div class="qr-frame" id="qrFrame"></div>
+        <div class="qr-label" id="qrLabel">致 · 亲爱的朋友</div>
+        <div class="qr-hint">扫一扫，信会自己展开</div>
+      </div>
+
+      <div class="action-row">
+        <button class="btn btn-outline" onclick="openPrintOverlay()" style="flex:1">
+          打印卡片
         </button>
-        <button class="btn btn-secondary" id="btnCopyLink" style="flex:1">
-          📋 复制链接
+        <button class="btn btn-outline" id="btnCopyLink" style="flex:1">
+          复制链接
+        </button>
+        <button class="btn btn-outline" id="btnNewLetter" style="flex:1">
+          再写一封
         </button>
       </div>
-      <button class="btn btn-secondary" id="btnNewLetter" style="width:100%;margin-top:10px;">
-        ✍️ 再写一封
-      </button>
     </div>
   </div>
 
@@ -454,44 +680,67 @@
   <div class="read-mode" id="readMode">
     <div class="letter-stage">
       <div class="letter-paper" id="letterPaper">
+        <div class="letter-meta" id="letterMeta">A HIDDEN LETTER</div>
         <div class="letter-title" id="letterTitle"></div>
         <div class="letter-body" id="letterBodyDisplay"></div>
-        <div class="letter-signature" id="letterSignature"></div>
-        <div class="letter-date" id="letterDate"></div>
+        <div class="letter-close" id="letterClose">
+          <div class="letter-signature" id="letterSignature"></div>
+          <div class="letter-date" id="letterDate"></div>
+        </div>
       </div>
     </div>
     <div class="read-footer">
-      <div class="hint">💡 这也是一封用「寄信」App 发送的隐藏信件</div>
-      <button class="btn btn-secondary" onclick="location.hash=''">
-        ✍️ 我也要写一封
+      <div class="hint">这也是一封用「寄信」发送的隐藏信件</div>
+      <button class="btn btn-outline" onclick="location.hash=''">
+        我也要写一封
       </button>
     </div>
   </div>
 
   <!-- Error state -->
   <div class="error-state" id="errorState" style="display:none;">
-    <div class="emoji">📭</div>
+    <div class="icon">📭</div>
     <h2>这封信好像不见了</h2>
     <p>链接可能已过期或被损坏</p>
-    <button class="btn btn-secondary" onclick="location.hash=''" style="margin-top:20px;">
+    <button class="btn btn-outline back-btn" onclick="location.hash=''">
       ← 回到首页
     </button>
+  </div>
+
+  <!-- ============ PRINT OVERLAY ============ -->
+  <div class="print-overlay" id="printOverlay">
+    <div class="print-card" id="printCard">
+      <button class="print-close" onclick="closePrintOverlay()">&times;</button>
+      <div class="print-header" id="printHeader">致 · 亲爱的朋友</div>
+      <div class="print-sub">扫描阅读这封隐藏的信</div>
+      <div class="print-qr" id="printQr"></div>
+      <div class="print-footer" id="printFooter"></div>
+      <div class="print-actions-overlay">
+        <button class="btn btn-primary" onclick="doPrint()" style="flex:1">
+          确认打印
+        </button>
+        <button class="btn btn-outline" onclick="closePrintOverlay()" style="flex:1">
+          取消
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
 <script>
-// ============ APP STATE ============
+// ============ THEMES ============
 const themes = {
-  warm:  { card: '#fffef9', bg: '#faf6f0', accent: '#c44536', ink: '#3d322b', border: '#e0d5c7' },
-  cool:  { card: '#fafcfe', bg: '#f2f6fa', accent: '#4a7c96', ink: '#2c3e4f', border: '#d0dae4' },
-  pink:  { card: '#fffafb', bg: '#faf4f6', accent: '#c4657a', ink: '#4a2c34', border: '#e8d4da' },
-  mint:  { card: '#fafefc', bg: '#f4faf6', accent: '#5a8a72', ink: '#2c3e34', border: '#d0e4d8' }
+  warm:  { card: '#fffef9', bg: '#f5f0e8', accent: '#c44536', ink: '#3d322b', border: '#e0d5c7' },
+  cool:  { card: '#fafcfe', bg: '#f0f4f8', accent: '#4a7c96', ink: '#2c3e4f', border: '#d0dae4' },
+  pink:  { card: '#fffafa', bg: '#f8f0f2', accent: '#c4657a', ink: '#4a2c34', border: '#e8d4da' },
+  mint:  { card: '#fafffb', bg: '#f0f6f2', accent: '#5a8a72', ink: '#2c3e34', border: '#d0e4d8' }
 };
 
 let currentTheme = 'warm';
 let currentLetterUrl = '';
+let currentLetterData = null;
 
-// ============ DOM REFS ============
+// ============ DOM ============
 const writeMode = document.getElementById('writeMode');
 const readMode = document.getElementById('readMode');
 const errorState = document.getElementById('errorState');
@@ -500,10 +749,15 @@ const letterBody = document.getElementById('letterBody');
 const letterTo = document.getElementById('letterTo');
 const letterFrom = document.getElementById('letterFrom');
 const btnGenerate = document.getElementById('btnGenerate');
-const qrCardSection = document.getElementById('qrCardSection');
-const qrContainer = document.getElementById('qrContainer');
-const cardTitle = document.getElementById('cardTitle');
-const cardUrl = document.getElementById('cardUrl');
+const resultSection = document.getElementById('resultSection');
+const qrFrame = document.getElementById('qrFrame');
+const qrLabel = document.getElementById('qrLabel');
+const qrDisplay = document.getElementById('qrDisplay');
+const printOverlay = document.getElementById('printOverlay');
+const printHeader = document.getElementById('printHeader');
+const printQr = document.getElementById('printQr');
+const printFooter = document.getElementById('printFooter');
+const printCard = document.getElementById('printCard');
 
 // ============ THEME SWITCHING ============
 document.querySelectorAll('.theme-dot').forEach(dot => {
@@ -526,17 +780,15 @@ function applyTheme(themeName) {
 
 // ============ VALIDATION ============
 function checkValid() {
-  const hasContent = letterBody.value.trim().length > 0;
-  btnGenerate.disabled = !hasContent;
+  btnGenerate.disabled = letterBody.value.trim().length === 0;
 }
 
 letterBody.addEventListener('input', checkValid);
-letterTo.addEventListener('input', checkValid);
 
 // ============ GENERATE LETTER ============
 btnGenerate.addEventListener('click', () => {
   const letter = {
-    v: 1, // version
+    v: 1,
     to: letterTo.value.trim(),
     body: letterBody.value.trim(),
     from: letterFrom.value.trim(),
@@ -549,35 +801,33 @@ btnGenerate.addEventListener('click', () => {
   const url = window.location.origin + window.location.pathname + '#read/' + compressed;
 
   currentLetterUrl = url;
+  currentLetterData = letter;
 
-  // Show QR card
-  qrContainer.innerHTML = '';
-  new QRCode(qrContainer, {
+  // Generate QR
+  qrFrame.innerHTML = '';
+  new QRCode(qrFrame, {
     text: url,
-    width: 200,
-    height: 200,
+    width: 180,
+    height: 180,
     colorDark: themes[currentTheme].ink,
     colorLight: '#ffffff',
     correctLevel: QRCode.CorrectLevel.M
   });
 
-  // Update card info
+  // Update labels
   const recipient = letter.to || '亲爱的朋友';
-  cardTitle.textContent = '致 ' + recipient;
-  cardUrl.textContent = url;
+  qrLabel.textContent = '致 ' + recipient;
 
-  // Show card, hide paper
+  // Show result
   paperEl.style.display = 'none';
-  qrCardSection.classList.add('show');
+  resultSection.classList.add('show');
   btnGenerate.style.display = 'none';
 
-  // Scroll to card
-  qrCardSection.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // Apply theme to result card
+  qrDisplay.style.background = themes[currentTheme].card;
+  qrDisplay.style.borderColor = themes[currentTheme].border;
 
-  // Update card theme
-  const t = themes[currentTheme];
-  document.getElementById('qrCard').style.background = t.card;
-  document.getElementById('qrCard').style.borderColor = t.border;
+  resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 
 // ============ COPY LINK ============
@@ -586,10 +836,9 @@ document.getElementById('btnCopyLink').addEventListener('click', async () => {
     await navigator.clipboard.writeText(currentLetterUrl);
     const btn = document.getElementById('btnCopyLink');
     const orig = btn.textContent;
-    btn.textContent = '✅ 已复制！';
+    btn.textContent = '已复制';
     setTimeout(() => { btn.textContent = orig; }, 2000);
   } catch {
-    // Fallback
     const input = document.createElement('input');
     input.value = currentLetterUrl;
     document.body.appendChild(input);
@@ -606,9 +855,55 @@ document.getElementById('btnNewLetter').addEventListener('click', () => {
   letterFrom.value = '';
   btnGenerate.disabled = true;
   paperEl.style.display = '';
-  qrCardSection.classList.remove('show');
+  resultSection.classList.remove('show');
   btnGenerate.style.display = '';
   window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+// ============ PRINT OVERLAY ============
+function openPrintOverlay() {
+  if (!currentLetterData) return;
+
+  printQr.innerHTML = '';
+  new QRCode(printQr, {
+    text: currentLetterUrl,
+    width: 160,
+    height: 160,
+    colorDark: '#3d322b',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.M
+  });
+
+  const recipient = currentLetterData.to || '亲爱的朋友';
+  printHeader.textContent = '致 ' + recipient;
+  printFooter.textContent = currentLetterUrl;
+
+  printOverlay.classList.add('show');
+}
+
+function closePrintOverlay() {
+  printOverlay.classList.remove('show');
+}
+
+function doPrint() {
+  // Hide action buttons for print
+  const actions = printCard.querySelector('.print-actions-overlay');
+  if (actions) actions.style.display = 'none';
+  const closeBtn = printCard.querySelector('.print-close');
+  if (closeBtn) closeBtn.style.display = 'none';
+
+  window.print();
+
+  // Restore after print dialog
+  setTimeout(() => {
+    if (actions) actions.style.display = '';
+    if (closeBtn) closeBtn.style.display = '';
+  }, 100);
+}
+
+// Close overlay on backdrop click
+printOverlay.addEventListener('click', (e) => {
+  if (e.target === printOverlay) closePrintOverlay();
 });
 
 // ============ READ MODE ============
@@ -618,19 +913,15 @@ function showReadMode(data) {
   readMode.style.display = 'block';
   document.querySelector('.app-header').style.display = 'none';
 
-  // Apply theme
   applyTheme(data.theme || 'warm');
 
-  // Set letter paper theme
   const lp = document.getElementById('letterPaper');
   lp.style.background = themes[data.theme || 'warm'].card;
-  lp.style.borderColor = themes[data.theme || 'warm'].border;
 
-  // Title
   const recipient = data.to || '亲爱的朋友';
   document.getElementById('letterTitle').textContent = '致 ' + recipient;
 
-  // Body - typewriter
+  // Typewriter effect
   const bodyEl = document.getElementById('letterBodyDisplay');
   bodyEl.innerHTML = '';
   const fullText = data.body || '';
@@ -645,42 +936,32 @@ function showReadMode(data) {
         bodyEl.appendChild(document.createTextNode(char));
       }
       charIndex++;
-      // Vary speed slightly for realism
-      const delay = char === '\n' ? 120 : (char === '，' || char === '。' || char === '…') ? 100 : 45 + Math.random() * 25;
+      const delay = char === '\n' ? 140 : (char === '，' || char === '。' || char === '…' || char === '！' || char === '？') ? 120 : 40 + Math.random() * 30;
       setTimeout(typeNext, delay);
     } else {
-      // Remove cursor
       const cursor = bodyEl.querySelector('.cursor');
       if (cursor) cursor.remove();
-      // Show signature
       showSignature(data);
     }
   }
 
-  // Add blinking cursor
   const cursor = document.createElement('span');
   cursor.className = 'cursor';
   bodyEl.appendChild(cursor);
+  setTimeout(typeNext, 500);
 
-  // Start typing after a short delay
-  setTimeout(typeNext, 600);
-
-  // Signature (hidden until typing done)
-  document.getElementById('letterSignature').textContent = '';
-  document.getElementById('letterSignature').classList.remove('show');
-  document.getElementById('letterDate').textContent = '';
-  document.getElementById('letterDate').classList.remove('show');
+  document.getElementById('letterClose').classList.remove('show');
 }
 
 function showSignature(data) {
+  const close = document.getElementById('letterClose');
   if (data.from) {
-    const sig = document.getElementById('letterSignature');
-    sig.textContent = '—— ' + data.from;
-    sig.classList.add('show');
+    document.getElementById('letterSignature').textContent = '—— ' + data.from;
+  } else {
+    document.getElementById('letterSignature').textContent = '';
   }
-  const dateEl = document.getElementById('letterDate');
-  dateEl.textContent = data.date || '';
-  dateEl.classList.add('show');
+  document.getElementById('letterDate').textContent = data.date || '';
+  close.classList.add('show');
 }
 
 // ============ ROUTER ============
@@ -688,7 +969,6 @@ function route() {
   const hash = window.location.hash;
 
   if (!hash) {
-    // Write mode
     writeMode.style.display = 'block';
     readMode.style.display = 'none';
     errorState.style.display = 'none';
@@ -698,7 +978,7 @@ function route() {
 
   if (hash.startsWith('#read/')) {
     try {
-      const encoded = hash.slice(6); // remove '#read/'
+      const encoded = hash.slice(6);
       const json = LZString.decompressFromEncodedURIComponent(encoded);
       if (!json) throw new Error('Decompress failed');
       const data = JSON.parse(json);
@@ -714,14 +994,10 @@ function route() {
     return;
   }
 
-  // Unknown hash - show write mode
   location.hash = '';
 }
 
-// Listen for hash changes
 window.addEventListener('hashchange', route);
-
-// Initial route
 route();
 </script>
 </body>
