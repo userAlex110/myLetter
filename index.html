@@ -154,8 +154,10 @@
   }
   .field-group textarea {
     resize: none;
-    min-height: 180px;
+    min-height: 120px;
     line-height: 32px;
+    overflow: hidden;
+    transition: height 0.2s ease;
   }
   .field-group input::placeholder,
   .field-group textarea::placeholder {
@@ -776,12 +778,23 @@ function applyTheme(themeName) {
   document.documentElement.style.setProperty('--border', t.border);
 }
 
-// ============ VALIDATION ============
+// ============ VALIDATION & AUTO-RESIZE ============
 function checkValid() {
   btnGenerate.disabled = letterBody.value.trim().length === 0;
 }
 
-letterBody.addEventListener('input', checkValid);
+function autoResize() {
+  letterBody.style.height = 'auto';
+  letterBody.style.height = letterBody.scrollHeight + 'px';
+}
+
+letterBody.addEventListener('input', () => {
+  checkValid();
+  autoResize();
+});
+
+// Initial resize in case of pre-filled content
+autoResize();
 
 // ============ GENERATE LETTER ============
 btnGenerate.addEventListener('click', async () => {
@@ -867,6 +880,7 @@ document.getElementById('btnCopyLink').addEventListener('click', async () => {
 // ============ NEW LETTER ============
 document.getElementById('btnNewLetter').addEventListener('click', () => {
   letterBody.value = '';
+  letterBody.style.height = '';
   letterTo.value = '';
   letterFrom.value = '';
   btnGenerate.disabled = true;
