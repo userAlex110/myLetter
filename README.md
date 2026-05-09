@@ -53,7 +53,6 @@ https://useralex110.github.io/myLetter
 ```
 myLetter/
 ├── index.html              # 前端页面（单文件，包含 HTML + CSS + JS）
-├── worker.js               # Cloudflare Worker 后端（旧版，已弃用）
 ├── tencent-cloud/          # 腾讯云 CloudBase 云函数
 │   ├── saveLetter/
 │   │   ├── index.js        # 保存信件云函数
@@ -61,8 +60,6 @@ myLetter/
 │   └── readLetter/
 │       ├── index.js        # 读取信件云函数
 │       └── package.json
-├── DEPLOY.md               # Cloudflare 部署指南（旧版）
-├── TENCENT_DEPLOY.md       # 腾讯云部署指南
 └── README.md               # 本文件
 ```
 
