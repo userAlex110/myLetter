@@ -48,16 +48,14 @@ exports.main = async (event, context) => {
 
   try {
     await db.collection('letters').add({
-      data: {
-        _id: id,
-        to: to || '',
-        body: letterBody,
-        from: from || '',
-        theme: theme || 'warm',
-        date: date || '',
-        expireAt,
-        createTime: db.serverDate()
-      }
+      _id: id,
+      to: to || '',
+      body: letterBody,
+      from: from || '',
+      theme: theme || 'warm',
+      date: date || '',
+      expireAt,
+      createTime: db.serverDate()
     });
 
     return response({ id, ok: true });
