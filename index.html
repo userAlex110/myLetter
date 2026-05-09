@@ -724,8 +724,9 @@
 
 <script>
 // ============ CONFIG ============
-// Cloudflare Worker API endpoint
-const API_BASE = 'https://letter-api.zichenwang43.workers.dev';
+// 腾讯云 CloudBase 云函数地址（部署后替换为真实 URL）
+const SAVE_API = 'https://cloud1-3g1sm5oa39a66de1.service.tcloudbase.com/saveLetter';
+const READ_API = 'https://cloud1-3g1sm5oa39a66de1.service.tcloudbase.com/readLetter';
 
 // ============ THEMES ============
 const themes = {
@@ -811,7 +812,7 @@ btnGenerate.addEventListener('click', async () => {
   };
 
   try {
-    const res = await fetch(API_BASE + '/api/save', {
+    const res = await fetch(SAVE_API, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(letter)
@@ -943,7 +944,7 @@ async function showReadMode(token) {
   document.querySelector('.app-header').style.display = 'none';
 
   try {
-    const res = await fetch(API_BASE + '/api/read/' + token);
+    const res = await fetch(READ_API + '?id=' + token);
     if (!res.ok) {
       throw new Error('Not found');
     }
