@@ -274,6 +274,31 @@
     background: rgba(0,0,0,0.02);
   }
 
+  .btn-destroy {
+    background: transparent;
+    color: var(--accent);
+    border: 1px solid var(--accent-soft);
+    font-size: 13px;
+    padding: 10px 20px;
+    margin-top: 20px;
+    transition: all 0.3s ease;
+  }
+  .btn-destroy:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(196,69,54,0.2);
+  }
+  .btn-destroy:disabled {
+    background: transparent;
+    color: var(--accent-soft);
+    border-color: var(--accent-soft);
+    cursor: wait;
+    transform: none;
+    box-shadow: none;
+  }
+
   .action-row {
     display: flex;
     gap: 10px;
@@ -690,6 +715,7 @@
         <div class="letter-close" id="letterClose">
           <div class="letter-signature" id="letterSignature"></div>
           <div class="letter-date" id="letterDate"></div>
+          <button class="btn btn-destroy" id="destroyBtn" style="display:none;" onclick="destroyLetter()">🗑 销毁这封信</button>
         </div>
       </div>
     </div>
@@ -754,6 +780,8 @@ let currentLetterData = null;
 const writeMode = document.getElementById('writeMode');
 const readMode = document.getElementById('readMode');
 const errorState = document.getElementById('errorState');
+let currentReadToken = null;
+const letterPaperOriginalHTML = document.getElementById('letterPaper').innerHTML;
 const paperEl = document.getElementById('paperEl');
 const letterBody = document.getElementById('letterBody');
 const letterTo = document.getElementById('letterTo');
@@ -992,10 +1020,21 @@ printOverlay.addEventListener('click', (e) => {
 
 // ============ READ MODE ============
 async function showReadMode(token) {
+  currentReadToken = token;
   writeMode.style.display = 'none';
   errorState.style.display = 'none';
   readMode.style.display = 'block';
   document.querySelector('.app-header').style.display = 'none';
+
+  // Reset read mode UI
+  const destroyBtn = document.getElementById('destroyBtn');
+  if (destroyBtn) destroyBtn.style.display = 'none';
+  const paper = document.getElementById('letterPaper');
+  if (paper) {
+    paper.innerHTML = letterPaperOriginalHTML;
+    paper.style.display = '';
+  }
+  document.querySelector('.read-footer').style.display = '';
 
   try {
     const res = await fetch(READ_API + '?id=' + token);
@@ -1058,6 +1097,60 @@ function showSignature(data) {
   }
   document.getElementById('letterDate').textContent = data.date || '';
   close.classList.add('show');
+
+  // Show destroy button after signature reveals
+  const destroyBtn = document.getElementById('destroyBtn');
+  if (destroyBtn) {
+    destroyBtn.style.display = 'inline-flex';
+    destroyBtn.disabled = false;
+    destroyBtn.textContent = '🗑 销毁这封信';
+  }
+}
+
+async function destroyLetter() {
+  if (!currentReadToken) return;
+
+  const confirmed = confirm(
+    '确定要销毁这封信吗？\n\n' +
+    '销毁后，这封信将永远消失，\n' +
+    '再也无法被任何人阅读。'
+  );
+  if (!confirmed) return;
+
+  const btn = document.getElementById('destroyBtn');
+  btn.disabled = true;
+  btn.textContent = '销毁中…';
+
+  try {
+    const res = await fetch(DELETE_API + '?id=' + currentReadToken);
+    if (!res.ok) throw new Error('Failed');
+
+    const paper = document.getElementById('letterPaper');
+    const themeKey = document.body.dataset.theme || 'warm';
+    const theme = themes[themeKey] || themes.warm;
+
+    paper.innerHTML = `
+      <div style="text-align:center;padding:60px 24px;">
+        <div style="font-size:52px;margin-bottom:16px;animation:fadeIn 0.8s ease;">🔥</div>
+        <div style="font-family:var(--font-art);font-size:24px;color:var(--accent);margin-bottom:10px;animation:fadeIn 0.8s ease 0.2s both;">
+          这封信已被销毁
+        </div>
+        <div style="font-size:13px;color:var(--ink-light);margin-bottom:36px;animation:fadeIn 0.8s ease 0.4s both;">
+          它已化为灰烬，不再存在
+        </div>
+        <button class="btn btn-outline" onclick="location.hash=''" style="animation:fadeIn 0.8s ease 0.6s both;">
+          回到首页
+        </button>
+      </div>
+    `;
+    paper.style.background = theme.card;
+    document.querySelector('.read-footer').style.display = 'none';
+    currentReadToken = null;
+  } catch (err) {
+    alert('销毁失败，请稍后重试');
+    btn.disabled = false;
+    btn.textContent = '🗑 销毁这封信';
+  }
 }
 
 // ============ ROUTER ============
@@ -1069,6 +1162,7 @@ function route() {
     readMode.style.display = 'none';
     errorState.style.display = 'none';
     document.querySelector('.app-header').style.display = '';
+    currentReadToken = null;
     return;
   }
 
