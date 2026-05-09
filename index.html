@@ -948,8 +948,10 @@ document.getElementById('btnDeleteLetter').addEventListener('click', async () =>
     const res = await fetch(DELETE_API + '?id=' + currentToken);
     const data = await res.json();
 
-    if (data.ok) {
-      alert('这封信已销毁');
+    // 200 正常删除成功，或 404 信件已不存在（被其他人销毁了）→ 都算"销毁成功"
+    const alreadyGone = res.status === 404;
+    if (data.ok || alreadyGone) {
+      alert(alreadyGone ? '这封信已不存在，可能已被阅读者销毁' : '这封信已销毁');
       // 重置到写信状态
       letterBody.value = '';
       letterBody.style.height = '';
@@ -1123,20 +1125,26 @@ async function destroyLetter() {
 
   try {
     const res = await fetch(DELETE_API + '?id=' + currentReadToken);
-    if (!res.ok) throw new Error('Failed');
+
+    // 404 = 信件已不存在（被其他人销毁了）→ 也算"销毁成功"
+    const alreadyGone = res.status === 404;
+    if (!res.ok && !alreadyGone) throw new Error('Failed');
 
     const paper = document.getElementById('letterPaper');
     const themeKey = document.body.dataset.theme || 'warm';
     const theme = themes[themeKey] || themes.warm;
 
+    const titleText = alreadyGone ? '这封信已不存在' : '这封信已被销毁';
+    const descText = alreadyGone ? '它早已被销毁，化为灰烬' : '它已化为灰烬，不再存在';
+
     paper.innerHTML = `
       <div style="text-align:center;padding:60px 24px;">
         <div style="font-size:52px;margin-bottom:16px;animation:fadeIn 0.8s ease;">🔥</div>
         <div style="font-family:var(--font-art);font-size:24px;color:var(--accent);margin-bottom:10px;animation:fadeIn 0.8s ease 0.2s both;">
-          这封信已被销毁
+          ${titleText}
         </div>
         <div style="font-size:13px;color:var(--ink-light);margin-bottom:36px;animation:fadeIn 0.8s ease 0.4s both;">
-          它已化为灰烬，不再存在
+          ${descText}
         </div>
         <button class="btn btn-outline" onclick="location.hash=''" style="animation:fadeIn 0.8s ease 0.6s both;">
           回到首页
