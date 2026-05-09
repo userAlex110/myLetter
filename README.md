@@ -87,23 +87,25 @@ python3 -m http.server 8080
 
 ## 部署到自己的环境
 
-### 方案一：腾讯云 CloudBase（推荐，国内访问快）
+本项目后端使用 **腾讯云 CloudBase**，前端托管在 **GitHub Pages**。
 
-详见 [TENCENT_DEPLOY.md](./TENCENT_DEPLOY.md)
+### 后端部署（腾讯云 CloudBase）
 
-核心步骤：
 1. 开通 [CloudBase 环境](https://tcb.cloud.tencent.com/dev#/select-env)
 2. 创建数据库集合 `letters`
-3. 部署 `saveLetter` 和 `readLetter` 两个云函数
+3. 部署 `saveLetter` 和 `readLetter` 两个云函数（代码在 `tencent-cloud/` 目录）
 4. 开启 HTTP 访问服务
-5. 修改 `index.html` 中的 `SAVE_API` 和 `READ_API`
-6. `git push` 到 GitHub Pages
+5. 修改 `index.html` 中的 `SAVE_API` 和 `READ_API` 为你的云函数地址
 
-### 方案二：Cloudflare Workers（国际访问快）
+### 前端部署（GitHub Pages）
 
-详见 [DEPLOY.md](./DEPLOY.md)
+```bash
+git add .
+git commit -m "update API endpoints"
+git push
+```
 
-> 国内用户可能遇到网络问题，建议用方案一。
+GitHub Pages 会自动更新。
 
 ---
 
@@ -197,7 +199,8 @@ python3 -m http.server 8080
 | 字体 | Google Fonts（Noto Serif SC, ZCOOL XiaoWei）|
 | 后端 | 腾讯云 CloudBase 云函数（Node.js 18）|
 | 数据库 | CloudBase NoSQL（类 MongoDB）|
-| 部署 | GitHub Pages + CloudBase |
+| 前端部署 | GitHub Pages |
+| 后端部署 | 腾讯云 CloudBase（上海节点）|
 
 ---
 
