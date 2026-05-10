@@ -626,6 +626,201 @@
   }
   .error-state p { font-size: 13px; color: var(--ink-light); }
   .error-state .back-btn { margin-top: 24px; display: inline-block; }
+
+  /* ============ DELIVERY TIME SELECTOR ============ */
+  .delivery-row {
+    margin: 8px 0 24px;
+  }
+  .delivery-label {
+    font-family: var(--font-serif);
+    font-size: 12px;
+    color: var(--ink-light);
+    letter-spacing: 2px;
+    margin-bottom: 10px;
+    display: block;
+  }
+  .delivery-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .delivery-option {
+    padding: 6px 14px;
+    border-radius: 2px;
+    border: 1px solid var(--border);
+    background: transparent;
+    font-family: var(--font-sans);
+    font-size: 13px;
+    color: var(--ink-light);
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.5px;
+  }
+  .delivery-option:hover {
+    border-color: var(--ink);
+    color: var(--ink);
+  }
+  .delivery-option.active {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--paper);
+  }
+  .delivery-datetime {
+    margin-top: 10px;
+    display: none;
+  }
+  .delivery-datetime.show { display: block; }
+  .delivery-datetime input {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--ink);
+    border: 1px solid var(--border);
+    border-radius: 2px;
+    padding: 8px 12px;
+    background: var(--card);
+    outline: none;
+  }
+  .delivery-datetime input:focus {
+    border-color: var(--accent);
+  }
+  .delivery-hint {
+    font-size: 11px;
+    color: var(--ink-light);
+    margin-top: 6px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ============ ENVELOPE WAITING ============ */
+  .waiting-stage {
+    min-height: 60vh;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.6s ease;
+  }
+  .waiting-stage.show { display: flex; }
+
+  .envelope-waiting {
+    text-align: center;
+    padding: 40px 24px;
+  }
+  .envelope-waiting .envelope-icon-big {
+    font-size: 72px;
+    display: block;
+    margin-bottom: 24px;
+    animation: envelopeFloat 3s ease-in-out infinite;
+  }
+  .envelope-waiting .waiting-title {
+    font-family: var(--font-art);
+    font-size: 22px;
+    color: var(--ink);
+    letter-spacing: 3px;
+    margin-bottom: 12px;
+  }
+  .envelope-waiting .waiting-sub {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    color: var(--ink-light);
+    line-height: 1.8;
+    margin-bottom: 28px;
+  }
+  .envelope-waiting .countdown-display {
+    font-family: var(--font-display);
+    font-size: 32px;
+    color: var(--accent);
+    letter-spacing: 2px;
+    margin-bottom: 8px;
+  }
+  .envelope-waiting .countdown-label {
+    font-size: 12px;
+    color: var(--ink-light);
+    letter-spacing: 1px;
+  }
+  .envelope-waiting .delivery-info {
+    margin-top: 32px;
+    padding-top: 20px;
+    border-top: 1px dashed var(--border);
+    font-size: 12px;
+    color: var(--ink-light);
+    letter-spacing: 0.5px;
+  }
+
+  /* Open button stage */
+  .open-stage {
+    min-height: 60vh;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    animation: fadeIn 0.6s ease;
+  }
+  .open-stage.show { display: flex; }
+
+  .btn-open {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    padding: 18px 48px;
+    border-radius: 2px;
+    font-size: 18px;
+    font-family: var(--font-art);
+    cursor: pointer;
+    border: 2px solid var(--ink);
+    background: var(--card);
+    color: var(--ink);
+    letter-spacing: 4px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-open:hover {
+    background: var(--ink);
+    color: var(--paper);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(60,40,20,0.15);
+  }
+  .btn-open .envelope-small {
+    font-size: 20px;
+  }
+
+  /* Dotted path decoration */
+  .path-dots {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: hidden;
+    opacity: 0.3;
+  }
+  .path-dots::before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    left: 10%;
+    width: 80%;
+    height: 60%;
+    background: radial-gradient(circle, var(--gold) 1px, transparent 1px);
+    background-size: 24px 24px;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M10,50 Q30,20 50,50 T90,50' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E") no-repeat center;
+    mask-size: 100% 100%;
+    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M10,50 Q30,20 50,50 T90,50' fill='none' stroke='black' stroke-width='2'/%3E%3C/svg%3E") no-repeat center;
+    -webkit-mask-size: 100% 100%;
+  }
+
+  @keyframes envelopeFloat {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    25% { transform: translateY(-10px) rotate(1deg); }
+    50% { transform: translateY(-4px) rotate(-1deg); }
+    75% { transform: translateY(-12px) rotate(2deg); }
+  }
+
+  /* QR delivery hint */
+  .qr-delivery-hint {
+    font-size: 12px;
+    color: var(--accent);
+    margin-top: 8px;
+    letter-spacing: 0.5px;
+    font-family: var(--font-serif);
+  }
 </style>
 </head>
 <body>
@@ -664,6 +859,21 @@
         </div>
       </div>
 
+      <div class="delivery-row">
+        <span class="delivery-label">送达时间</span>
+        <div class="delivery-options">
+          <button class="delivery-option active" data-delivery="now">立即送达</button>
+          <button class="delivery-option" data-delivery="1h">1小时后</button>
+          <button class="delivery-option" data-delivery="tomorrow">明天此刻</button>
+          <button class="delivery-option" data-delivery="3d">3天后</button>
+          <button class="delivery-option" data-delivery="custom">自定义</button>
+        </div>
+        <div class="delivery-datetime" id="deliveryDatetime">
+          <input type="datetime-local" id="customDatetime">
+        </div>
+        <div class="delivery-hint" id="deliveryHint"></div>
+      </div>
+
       <button class="btn btn-primary" id="btnGenerate" disabled>
         生成我的信
       </button>
@@ -680,6 +890,7 @@
         <div class="qr-frame" id="qrFrame"></div>
         <div class="qr-label" id="qrLabel">致 · 亲爱的朋友</div>
         <div class="qr-hint">扫一扫，信会自己展开</div>
+        <div class="qr-delivery-hint" id="qrDeliveryHint"></div>
       </div>
 
       <div class="action-row">
@@ -707,7 +918,32 @@
 
   <!-- ============ READ MODE ============ -->
   <div class="read-mode" id="readMode">
-    <div class="letter-stage">
+    <!-- Waiting envelope stage -->
+    <div class="waiting-stage" id="waitingStage">
+      <div class="envelope-waiting">
+        <span class="envelope-icon-big">✉️</span>
+        <div class="waiting-title">这封信正在穿越山海</div>
+        <div class="waiting-sub">费劲力气，正在向你赶来</div>
+        <div class="countdown-display" id="countdownDisplay">--:--:--</div>
+        <div class="countdown-label">后送达</div>
+        <div class="delivery-info" id="deliveryInfo"></div>
+      </div>
+    </div>
+
+    <!-- Open button stage -->
+    <div class="open-stage" id="openStage">
+      <div style="text-align:center;">
+        <div style="font-size:48px;margin-bottom:20px;">📬</div>
+        <div style="font-family:var(--font-art);font-size:20px;color:var(--ink);letter-spacing:3px;margin-bottom:24px;">信件已送达</div>
+        <button class="btn-open" id="btnOpenLetter" onclick="openLetter()">
+          <span class="envelope-small">✉️</span>
+          拆开这封信
+        </button>
+      </div>
+    </div>
+
+    <!-- Letter content stage -->
+    <div class="letter-stage" id="letterStage">
       <div class="letter-paper" id="letterPaper">
         <div class="letter-meta" id="letterMeta">A HIDDEN LETTER</div>
         <div class="letter-title" id="letterTitle"></div>
@@ -719,7 +955,7 @@
         </div>
       </div>
     </div>
-    <div class="read-footer">
+    <div class="read-footer" id="readFooter">
       <div class="hint">这也是一封用「寄信」发送的隐藏信件</div>
       <button class="btn btn-outline" onclick="location.hash=''">
         我也要写一封
@@ -775,6 +1011,9 @@ const themes = {
 let currentTheme = 'warm';
 let currentToken = '';
 let currentLetterData = null;
+let currentOpenAt = null;
+let countdownInterval = null;
+let pendingLetterBody = null;
 
 // ============ DOM ============
 const writeMode = document.getElementById('writeMode');
@@ -796,6 +1035,16 @@ const printHeader = document.getElementById('printHeader');
 const printQr = document.getElementById('printQr');
 const printFooter = document.getElementById('printFooter');
 const printCard = document.getElementById('printCard');
+const deliveryDatetime = document.getElementById('deliveryDatetime');
+const customDatetime = document.getElementById('customDatetime');
+const deliveryHint = document.getElementById('deliveryHint');
+const qrDeliveryHint = document.getElementById('qrDeliveryHint');
+const waitingStage = document.getElementById('waitingStage');
+const openStage = document.getElementById('openStage');
+const letterStage = document.getElementById('letterStage');
+const countdownDisplay = document.getElementById('countdownDisplay');
+const deliveryInfo = document.getElementById('deliveryInfo');
+const readFooter = document.getElementById('readFooter');
 
 // ============ THEME SWITCHING ============
 document.querySelectorAll('.theme-dot').forEach(dot => {
@@ -815,6 +1064,70 @@ function applyTheme(themeName) {
   document.documentElement.style.setProperty('--ink', t.ink);
   document.documentElement.style.setProperty('--border', t.border);
 }
+
+// ============ DELIVERY TIME ============
+function getDeliveryTime(mode) {
+  const now = new Date();
+  switch (mode) {
+    case 'now': return null;
+    case '1h': return new Date(now.getTime() + 60 * 60 * 1000).toISOString();
+    case 'tomorrow': return new Date(now.getTime() + 24 * 60 * 60 * 1000).toISOString();
+    case '3d': return new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000).toISOString();
+    case 'custom':
+      const val = customDatetime.value;
+      if (!val) return null;
+      const customDate = new Date(val);
+      if (isNaN(customDate.getTime()) || customDate <= now) return null;
+      return customDate.toISOString();
+    default: return null;
+  }
+}
+
+function formatDeliveryHint(isoString) {
+  if (!isoString) return '';
+  const d = new Date(isoString);
+  const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+  const dd = d.getDate().toString().padStart(2, '0');
+  const hh = d.getHours().toString().padStart(2, '0');
+  const mi = d.getMinutes().toString().padStart(2, '0');
+  return `预计 ${mm}月${dd}日 ${hh}:${mi} 送达`;
+}
+
+function formatCountdown(ms) {
+  if (ms <= 0) return '00:00:00';
+  const totalSeconds = Math.floor(ms / 1000);
+  const hours = Math.floor(totalSeconds / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+  if (hours > 0) {
+    return `${hours}:${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+  }
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+}
+
+document.querySelectorAll('.delivery-option').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.delivery-option').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const mode = btn.dataset.delivery;
+    if (mode === 'custom') {
+      deliveryDatetime.classList.add('show');
+      customDatetime.focus();
+    } else {
+      deliveryDatetime.classList.remove('show');
+    }
+    const openAt = getDeliveryTime(mode);
+    deliveryHint.textContent = openAt ? formatDeliveryHint(openAt) : '';
+  });
+});
+
+customDatetime.addEventListener('change', () => {
+  const activeBtn = document.querySelector('.delivery-option.active');
+  if (activeBtn && activeBtn.dataset.delivery === 'custom') {
+    const openAt = getDeliveryTime('custom');
+    deliveryHint.textContent = openAt ? formatDeliveryHint(openAt) : '请选择未来的时间';
+  }
+});
 
 // ============ VALIDATION & AUTO-RESIZE ============
 function checkValid() {
@@ -841,6 +1154,10 @@ btnGenerate.addEventListener('click', async () => {
   btn.classList.add('loading');
   btn.textContent = '正在寄出...';
 
+  const activeDelivery = document.querySelector('.delivery-option.active');
+  const deliveryMode = activeDelivery ? activeDelivery.dataset.delivery : 'now';
+  const openAt = getDeliveryTime(deliveryMode);
+
   const letter = {
     to: letterTo.value.trim(),
     body: letterBody.value.trim(),
@@ -848,6 +1165,7 @@ btnGenerate.addEventListener('click', async () => {
     theme: currentTheme,
     date: new Date().toISOString().split('T')[0]
   };
+  if (openAt) letter.openAt = openAt;
 
   try {
     const res = await fetch(SAVE_API, {
@@ -863,6 +1181,7 @@ btnGenerate.addEventListener('click', async () => {
 
     currentToken = data.id;
     currentLetterData = letter;
+    currentOpenAt = openAt;
 
     const readUrl = window.location.origin + window.location.pathname + '#token/' + currentToken;
 
@@ -879,6 +1198,12 @@ btnGenerate.addEventListener('click', async () => {
 
     const recipient = letter.to || '亲爱的朋友';
     qrLabel.textContent = '致 ' + recipient;
+
+    if (openAt) {
+      qrDeliveryHint.textContent = '🕐 ' + formatDeliveryHint(openAt);
+    } else {
+      qrDeliveryHint.textContent = '';
+    }
 
     paperEl.style.display = 'none';
     resultSection.classList.add('show');
@@ -929,6 +1254,14 @@ document.getElementById('btnNewLetter').addEventListener('click', () => {
   btnGenerate.style.display = '';
   currentToken = '';
   currentLetterData = null;
+  currentOpenAt = null;
+  qrDeliveryHint.textContent = '';
+  // Reset delivery options
+  document.querySelectorAll('.delivery-option').forEach(b => b.classList.remove('active'));
+  document.querySelector('.delivery-option[data-delivery="now"]').classList.add('active');
+  deliveryDatetime.classList.remove('show');
+  customDatetime.value = '';
+  deliveryHint.textContent = '';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
@@ -965,6 +1298,13 @@ document.getElementById('btnDeleteLetter').addEventListener('click', async () =>
       btnGenerate.style.display = '';
       currentToken = '';
       currentLetterData = null;
+      currentOpenAt = null;
+      qrDeliveryHint.textContent = '';
+      document.querySelectorAll('.delivery-option').forEach(b => b.classList.remove('active'));
+      document.querySelector('.delivery-option[data-delivery="now"]').classList.add('active');
+      deliveryDatetime.classList.remove('show');
+      customDatetime.value = '';
+      deliveryHint.textContent = '';
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } else {
       throw new Error(data.error || 'Delete failed');
@@ -1036,7 +1376,15 @@ async function showReadMode(token) {
     paper.innerHTML = letterPaperOriginalHTML;
     paper.style.display = '';
   }
-  document.querySelector('.read-footer').style.display = '';
+  if (readFooter) readFooter.style.display = '';
+  if (waitingStage) waitingStage.classList.remove('show');
+  if (openStage) openStage.classList.remove('show');
+  if (letterStage) letterStage.style.display = '';
+  if (countdownInterval) {
+    clearInterval(countdownInterval);
+    countdownInterval = null;
+  }
+  pendingLetterBody = null;
 
   try {
     const res = await fetch(READ_API + '?id=' + token);
@@ -1047,47 +1395,112 @@ async function showReadMode(token) {
 
     applyTheme(data.theme || 'warm');
 
-    const lp = document.getElementById('letterPaper');
-    lp.style.background = themes[data.theme || 'warm'].card;
+    // Locked: not yet time to open
+    if (data.locked && data.openAt) {
+      const openDate = new Date(data.openAt);
+      const recipient = data.to || '亲爱的朋友';
+      const fromName = data.from || '匿名';
 
-    const recipient = data.to || '亲爱的朋友';
-    document.getElementById('letterTitle').textContent = '致 ' + recipient;
+      if (waitingStage) waitingStage.classList.add('show');
+      if (openStage) openStage.classList.remove('show');
+      if (letterStage) letterStage.style.display = 'none';
 
-    // Typewriter effect
-    const bodyEl = document.getElementById('letterBodyDisplay');
-    bodyEl.innerHTML = '';
-    const fullText = data.body || '';
-    let charIndex = 0;
-
-    function typeNext() {
-      if (charIndex < fullText.length) {
-        const char = fullText[charIndex];
-        if (char === '\n') {
-          bodyEl.appendChild(document.createElement('br'));
-        } else {
-          bodyEl.appendChild(document.createTextNode(char));
-        }
-        charIndex++;
-        const delay = char === '\n' ? 140 : (char === '，' || char === '。' || char === '…' || char === '！' || char === '？') ? 120 : 40 + Math.random() * 30;
-        setTimeout(typeNext, delay);
-      } else {
-        const cursor = bodyEl.querySelector('.cursor');
-        if (cursor) cursor.remove();
-        showSignature(data);
+      if (deliveryInfo) {
+        deliveryInfo.textContent = `来自 ${fromName} 的信，致 ${recipient}`;
       }
+
+      function updateCountdown() {
+        const now = new Date();
+        const diff = openDate.getTime() - now.getTime();
+        if (diff <= 0) {
+          if (countdownInterval) {
+            clearInterval(countdownInterval);
+            countdownInterval = null;
+          }
+          if (waitingStage) waitingStage.classList.remove('show');
+          if (openStage) openStage.classList.add('show');
+          return;
+        }
+        if (countdownDisplay) {
+          countdownDisplay.textContent = formatCountdown(diff);
+        }
+      }
+
+      updateCountdown();
+      countdownInterval = setInterval(updateCountdown, 1000);
+      return;
     }
 
-    const cursor = document.createElement('span');
-    cursor.className = 'cursor';
-    bodyEl.appendChild(cursor);
-    setTimeout(typeNext, 500);
-
-    document.getElementById('letterClose').classList.remove('show');
+    // Unlocked: show letter content directly (or via open button if user prefers)
+    showLetterContent(data);
   } catch (err) {
     readMode.style.display = 'none';
     errorState.style.display = 'block';
     document.querySelector('.app-header').style.display = 'none';
   }
+}
+
+function showLetterContent(data) {
+  if (waitingStage) waitingStage.classList.remove('show');
+  if (openStage) openStage.classList.remove('show');
+  if (letterStage) letterStage.style.display = '';
+
+  const lp = document.getElementById('letterPaper');
+  lp.style.background = themes[data.theme || 'warm'].card;
+
+  const recipient = data.to || '亲爱的朋友';
+  document.getElementById('letterTitle').textContent = '致 ' + recipient;
+
+  // Typewriter effect
+  const bodyEl = document.getElementById('letterBodyDisplay');
+  bodyEl.innerHTML = '';
+  const fullText = data.body || '';
+  let charIndex = 0;
+
+  function typeNext() {
+    if (charIndex < fullText.length) {
+      const char = fullText[charIndex];
+      if (char === '\n') {
+        bodyEl.appendChild(document.createElement('br'));
+      } else {
+        bodyEl.appendChild(document.createTextNode(char));
+      }
+      charIndex++;
+      const delay = char === '\n' ? 140 : (char === '，' || char === '。' || char === '…' || char === '！' || char === '？') ? 120 : 40 + Math.random() * 30;
+      setTimeout(typeNext, delay);
+    } else {
+      const cursor = bodyEl.querySelector('.cursor');
+      if (cursor) cursor.remove();
+      showSignature(data);
+    }
+  }
+
+  const cursor = document.createElement('span');
+  cursor.className = 'cursor';
+  bodyEl.appendChild(cursor);
+  setTimeout(typeNext, 500);
+
+  document.getElementById('letterClose').classList.remove('show');
+}
+
+function openLetter() {
+  if (!currentReadToken) return;
+  if (openStage) openStage.classList.remove('show');
+  if (letterStage) letterStage.style.display = '';
+
+  fetch(READ_API + '?id=' + currentReadToken)
+    .then(res => res.json())
+    .then(data => {
+      if (data.ok && data.body) {
+        showLetterContent(data);
+      } else {
+        showReadMode(currentReadToken);
+      }
+    })
+    .catch(() => {
+      readMode.style.display = 'none';
+      errorState.style.display = 'block';
+    });
 }
 
 function showSignature(data) {

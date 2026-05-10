@@ -48,6 +48,17 @@ exports.main = async (event, context) => {
       return response({ error: 'Letter expired' }, 404);
     }
 
+    if (letter.openAt && new Date(letter.openAt) > new Date()) {
+      return response({
+        ok: true,
+        locked: true,
+        openAt: letter.openAt,
+        to: letter.to,
+        from: letter.from,
+        theme: letter.theme
+      });
+    }
+
     return response({
       ok: true,
       to: letter.to,

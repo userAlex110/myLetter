@@ -37,7 +37,7 @@ exports.main = async (event, context) => {
   }
 
   const data = getBody(event);
-  const { to, body: letterBody, from, theme, date } = data;
+  const { to, body: letterBody, from, theme, date, openAt } = data;
 
   if (!letterBody || letterBody.trim().length === 0) {
     return response({ error: 'Empty body' }, 400);
@@ -46,17 +46,26 @@ exports.main = async (event, context) => {
   const id = Math.random().toString(36).substring(2, 10);
   const expireAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
 
+  const doc = {
+    _id: id,
+    to: to || '',
+    body: letterBody,
+    from: from || '',
+    theme: theme || 'warm',
+    date: date || '',
+    expireAt,
+    createTime: db.serverDate()
+  };
+
+  if (openAt) {
+    const openDate = new Date(openAt);
+    if (!isNaN(openDate.getTime()) && openDate > new Date()) {
+      doc.openAt = openDate;
+    }
+  }
+
   try {
-    await db.collection('letters').add({
-      _id: id,
-      to: to || '',
-      body: letterBody,
-      from: from || '',
-      theme: theme || 'warm',
-      date: date || '',
-      expireAt,
-      createTime: db.serverDate()
-    });
+    await db.collection('letters').add(doc);
 
     return response({ id, ok: true });
   } catch (e) {
