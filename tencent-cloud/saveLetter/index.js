@@ -37,10 +37,14 @@ exports.main = async (event, context) => {
   }
 
   const data = getBody(event);
-  const { to, body: letterBody, from, theme, date, openAt } = data;
+  const { to, body: letterBody, from, theme, date, openAt, email } = data;
 
   if (!letterBody || letterBody.trim().length === 0) {
     return response({ error: 'Empty body' }, 400);
+  }
+
+  if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return response({ error: 'Invalid email format' }, 400);
   }
 
   const id = Math.random().toString(36).substring(2, 10);
@@ -54,7 +58,10 @@ exports.main = async (event, context) => {
     theme: theme || 'warm',
     date: date || '',
     expireAt,
-    createTime: db.serverDate()
+    createTime: db.serverDate(),
+    email: email || '',
+    sent: false,
+    sendAttempts: 0
   };
 
   if (openAt) {

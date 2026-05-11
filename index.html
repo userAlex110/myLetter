@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>寄信 — 把说不出口的话，藏进一个二维码里</title>
+<title>寄信 — 寄往未来的某个时刻</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -830,22 +830,26 @@
     <div class="app-header">
       <span class="envelope-icon">✉️</span>
       <h1>寄 信</h1>
-      <div class="sub">把说不出口的话，藏进一个二维码里</div>
+      <div class="sub">寄往未来的某个时刻</div>
       <div class="divider"></div>
     </div>
 
     <div class="paper" id="paperEl">
       <div class="field-group">
-        <label>致 <span class="optional">（收信人，可选）</span></label>
+        <label>致</label>
         <input type="text" id="letterTo" placeholder="对方的名字" maxlength="50">
       </div>
       <div class="field-group">
-        <label>信 <span class="optional">（正文）</span></label>
+        <label for="rEmail">收信人邮箱</label>
+        <input type="email" id="rEmail" maxlength="100" placeholder="对方邮箱，填了会发送邮件通知">
+      </div>
+      <div class="field-group">
+        <label>信</label>
         <textarea id="letterBody" placeholder="在这里写下你想说的话..." maxlength="3000"></textarea>
         <div class="char-hint">建议 800 字以内</div>
       </div>
       <div class="field-group">
-        <label>署名 <span class="optional">（你的名字，可选）</span></label>
+        <label>署名</label>
         <input type="text" id="letterFrom" placeholder="你的名字" maxlength="50">
       </div>
 
@@ -860,7 +864,7 @@
       </div>
 
       <div class="delivery-row">
-        <span class="delivery-label">送达时间</span>
+        <span class="delivery-label">拆信时间</span>
         <div class="delivery-options">
           <button class="delivery-option active" data-delivery="now">立即送达</button>
           <button class="delivery-option" data-delivery="1h">1小时后</button>
@@ -875,15 +879,23 @@
       </div>
 
       <button class="btn btn-primary" id="btnGenerate" disabled>
-        生成我的信
+        投递信件
       </button>
     </div>
 
     <!-- Result Section (hidden until generation) -->
     <div class="result-section" id="resultSection">
       <div class="result-header">
-        <h2>信已备好</h2>
-        <p>将下方二维码保存或打印，送给对方</p>
+        <h2 id="resultTitle">信已备好</h2>
+        <p id="resultSub">将下方二维码保存或打印，送给对方</p>
+      </div>
+
+      <!-- Email success info (hidden by default) -->
+      <div class="qr-display" id="emailSuccessInfo" style="display:none;">
+        <div style="font-size:52px;margin-bottom:16px;">🎉</div>
+        <div style="font-family:var(--font-art);font-size:20px;color:var(--ink);letter-spacing:3px;margin-bottom:12px;">信件已投递</div>
+        <div id="emailDeliveryInfo" style="font-size:13px;color:var(--ink-light);line-height:1.8;margin-bottom:8px;"></div>
+        <div id="emailDeliveryRecipient" style="font-size:12px;color:var(--ink-light);letter-spacing:0.5px;"></div>
       </div>
 
       <div class="qr-display" id="qrDisplay">
@@ -923,7 +935,7 @@
       <div class="envelope-waiting">
         <span class="envelope-icon-big">✉️</span>
         <div class="waiting-title">这封信正在穿越山海</div>
-        <div class="waiting-sub">费劲力气，正在向你赶来</div>
+        <div class="waiting-sub" id="waitingSub">费劲力气，正在向你赶来</div>
         <div class="countdown-display" id="countdownDisplay">--:--:--</div>
         <div class="countdown-label">后送达</div>
         <div class="delivery-info" id="deliveryInfo"></div>
@@ -1020,11 +1032,13 @@ const writeMode = document.getElementById('writeMode');
 const readMode = document.getElementById('readMode');
 const errorState = document.getElementById('errorState');
 let currentReadToken = null;
+let currentFromEmail = false;
 const letterPaperOriginalHTML = document.getElementById('letterPaper').innerHTML;
 const paperEl = document.getElementById('paperEl');
 const letterBody = document.getElementById('letterBody');
 const letterTo = document.getElementById('letterTo');
 const letterFrom = document.getElementById('letterFrom');
+const rEmail = document.getElementById('rEmail');
 const btnGenerate = document.getElementById('btnGenerate');
 const resultSection = document.getElementById('resultSection');
 const qrFrame = document.getElementById('qrFrame');
@@ -1039,7 +1053,13 @@ const deliveryDatetime = document.getElementById('deliveryDatetime');
 const customDatetime = document.getElementById('customDatetime');
 const deliveryHint = document.getElementById('deliveryHint');
 const qrDeliveryHint = document.getElementById('qrDeliveryHint');
+const emailSuccessInfo = document.getElementById('emailSuccessInfo');
+const emailDeliveryInfo = document.getElementById('emailDeliveryInfo');
+const emailDeliveryRecipient = document.getElementById('emailDeliveryRecipient');
+const resultTitle = document.getElementById('resultTitle');
+const resultSub = document.getElementById('resultSub');
 const waitingStage = document.getElementById('waitingStage');
+const waitingSub = document.getElementById('waitingSub');
 const openStage = document.getElementById('openStage');
 const letterStage = document.getElementById('letterStage');
 const countdownDisplay = document.getElementById('countdownDisplay');
@@ -1130,8 +1150,15 @@ customDatetime.addEventListener('change', () => {
 });
 
 // ============ VALIDATION & AUTO-RESIZE ============
+function isValidEmail(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
 function checkValid() {
-  btnGenerate.disabled = letterBody.value.trim().length === 0;
+  const bodyFilled = letterBody.value.trim().length > 0;
+  const emailFilled = rEmail.value.trim().length > 0;
+  const emailValid = !emailFilled || isValidEmail(rEmail.value.trim());
+  btnGenerate.disabled = !bodyFilled || !emailValid;
 }
 
 function autoResize() {
@@ -1143,6 +1170,8 @@ letterBody.addEventListener('input', () => {
   checkValid();
   autoResize();
 });
+
+rEmail.addEventListener('input', checkValid);
 
 // Initial resize in case of pre-filled content
 autoResize();
@@ -1157,6 +1186,8 @@ btnGenerate.addEventListener('click', async () => {
   const activeDelivery = document.querySelector('.delivery-option.active');
   const deliveryMode = activeDelivery ? activeDelivery.dataset.delivery : 'now';
   const openAt = getDeliveryTime(deliveryMode);
+  const email = rEmail.value.trim();
+  const hasEmail = email.length > 0;
 
   const letter = {
     to: letterTo.value.trim(),
@@ -1166,6 +1197,9 @@ btnGenerate.addEventListener('click', async () => {
     date: new Date().toISOString().split('T')[0]
   };
   if (openAt) letter.openAt = openAt;
+  if (hasEmail) {
+    letter.email = email;
+  }
 
   try {
     const res = await fetch(SAVE_API, {
@@ -1183,41 +1217,77 @@ btnGenerate.addEventListener('click', async () => {
     currentLetterData = letter;
     currentOpenAt = openAt;
 
-    const readUrl = window.location.origin + window.location.pathname + '#token/' + currentToken;
-
-    // Generate QR
-    qrFrame.innerHTML = '';
-    new QRCode(qrFrame, {
-      text: readUrl,
-      width: 180,
-      height: 180,
-      colorDark: themes[currentTheme].ink,
-      colorLight: '#ffffff',
-      correctLevel: QRCode.CorrectLevel.M
-    });
-
-    const recipient = letter.to || '亲爱的朋友';
-    qrLabel.textContent = '致 ' + recipient;
-
-    if (openAt) {
-      qrDeliveryHint.textContent = '🕐 ' + formatDeliveryHint(openAt);
-    } else {
-      qrDeliveryHint.textContent = '';
-    }
-
+    // Hide the paper form
     paperEl.style.display = 'none';
-    resultSection.classList.add('show');
     btn.style.display = 'none';
 
-    qrDisplay.style.background = themes[currentTheme].card;
-    qrDisplay.style.borderColor = themes[currentTheme].border;
+    if (hasEmail) {
+      // ============ EMAIL MODE ============
+      qrDisplay.style.display = 'none';
+      emailSuccessInfo.style.display = 'block';
+      document.getElementById('btnCopyLink').style.display = 'none';
+      document.querySelector('[onclick="openPrintOverlay()"]').style.display = 'none';
 
-    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      resultTitle.textContent = '信件已投递';
+      const recipient = letter.to || '亲爱的朋友';
+
+      if (openAt) {
+        const d = new Date(openAt);
+        const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+        const dd = d.getDate().toString().padStart(2, '0');
+        const hh = d.getHours().toString().padStart(2, '0');
+        const mi = d.getMinutes().toString().padStart(2, '0');
+        emailDeliveryInfo.textContent = `邮件通知已发送，信件将在 ${mm}月${dd}日 ${hh}:${mi} 解锁`;
+      } else {
+        emailDeliveryInfo.textContent = '邮件通知已发送，信件现在就可以打开';
+      }
+      emailDeliveryRecipient.textContent = `收件人：${recipient}（${email}）`;
+
+      resultSection.classList.add('show');
+      resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    } else {
+      // ============ QR MODE (existing flow) ============
+      const readUrl = window.location.origin + window.location.pathname + '#token/' + currentToken;
+
+      emailSuccessInfo.style.display = 'none';
+      qrDisplay.style.display = '';
+      document.getElementById('btnCopyLink').style.display = '';
+      document.querySelector('[onclick="openPrintOverlay()"]').style.display = '';
+
+      // Generate QR
+      qrFrame.innerHTML = '';
+      new QRCode(qrFrame, {
+        text: readUrl,
+        width: 180,
+        height: 180,
+        colorDark: themes[currentTheme].ink,
+        colorLight: '#ffffff',
+        correctLevel: QRCode.CorrectLevel.M
+      });
+
+      const recipient = letter.to || '亲爱的朋友';
+      qrLabel.textContent = '致 ' + recipient;
+
+      resultTitle.textContent = '信已备好';
+      resultSub.textContent = '将下方二维码保存或打印，送给对方';
+
+      if (openAt) {
+        qrDeliveryHint.textContent = '🕐 ' + formatDeliveryHint(openAt);
+      } else {
+        qrDeliveryHint.textContent = '';
+      }
+
+      qrDisplay.style.background = themes[currentTheme].card;
+      qrDisplay.style.borderColor = themes[currentTheme].border;
+
+      resultSection.classList.add('show');
+      resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   } catch (err) {
     alert('寄信失败：' + err.message + '\n\n请确认 API_BASE 已配置为你的 Worker 地址');
     btn.disabled = false;
     btn.classList.remove('loading');
-    btn.textContent = '生成我的信';
+    btn.textContent = '投递信件';
   }
 });
 
@@ -1246,9 +1316,10 @@ document.getElementById('btnNewLetter').addEventListener('click', () => {
   letterBody.style.height = '';
   letterTo.value = '';
   letterFrom.value = '';
+  rEmail.value = '';
   btnGenerate.disabled = true;
   btnGenerate.classList.remove('loading');
-  btnGenerate.textContent = '生成我的信';
+  btnGenerate.textContent = '投递信件';
   paperEl.style.display = '';
   resultSection.classList.remove('show');
   btnGenerate.style.display = '';
@@ -1256,6 +1327,10 @@ document.getElementById('btnNewLetter').addEventListener('click', () => {
   currentLetterData = null;
   currentOpenAt = null;
   qrDeliveryHint.textContent = '';
+  emailSuccessInfo.style.display = 'none';
+  qrDisplay.style.display = '';
+  document.getElementById('btnCopyLink').style.display = '';
+  document.querySelector('[onclick="openPrintOverlay()"]').style.display = '';
   // Reset delivery options
   document.querySelectorAll('.delivery-option').forEach(b => b.classList.remove('active'));
   document.querySelector('.delivery-option[data-delivery="now"]').classList.add('active');
@@ -1290,9 +1365,10 @@ document.getElementById('btnDeleteLetter').addEventListener('click', async () =>
       letterBody.style.height = '';
       letterTo.value = '';
       letterFrom.value = '';
+      rEmail.value = '';
       btnGenerate.disabled = true;
       btnGenerate.classList.remove('loading');
-      btnGenerate.textContent = '生成我的信';
+      btnGenerate.textContent = '投递信件';
       paperEl.style.display = '';
       resultSection.classList.remove('show');
       btnGenerate.style.display = '';
@@ -1300,6 +1376,10 @@ document.getElementById('btnDeleteLetter').addEventListener('click', async () =>
       currentLetterData = null;
       currentOpenAt = null;
       qrDeliveryHint.textContent = '';
+      emailSuccessInfo.style.display = 'none';
+      qrDisplay.style.display = '';
+      document.getElementById('btnCopyLink').style.display = '';
+      document.querySelector('[onclick="openPrintOverlay()"]').style.display = '';
       document.querySelectorAll('.delivery-option').forEach(b => b.classList.remove('active'));
       document.querySelector('.delivery-option[data-delivery="now"]').classList.add('active');
       deliveryDatetime.classList.remove('show');
@@ -1361,8 +1441,9 @@ printOverlay.addEventListener('click', (e) => {
 });
 
 // ============ READ MODE ============
-async function showReadMode(token) {
+async function showReadMode(token, fromEmail) {
   currentReadToken = token;
+  currentFromEmail = fromEmail;
   writeMode.style.display = 'none';
   errorState.style.display = 'none';
   readMode.style.display = 'block';
@@ -1405,6 +1486,18 @@ async function showReadMode(token) {
       if (openStage) openStage.classList.remove('show');
       if (letterStage) letterStage.style.display = 'none';
 
+      if (fromEmail) {
+        if (waitingSub) {
+          const mm = (openDate.getMonth() + 1).toString().padStart(2, '0');
+          const dd = openDate.getDate().toString().padStart(2, '0');
+          const hh = openDate.getHours().toString().padStart(2, '0');
+          const mi = openDate.getMinutes().toString().padStart(2, '0');
+          waitingSub.textContent = `这封信将在 ${mm}月${dd}日 ${hh}:${mi} 解锁，到那时再来看看吧`;
+        }
+      } else {
+        if (waitingSub) waitingSub.textContent = '费劲力气，正在向你赶来';
+      }
+
       if (deliveryInfo) {
         deliveryInfo.textContent = `来自 ${fromName} 的信，致 ${recipient}`;
       }
@@ -1431,7 +1524,21 @@ async function showReadMode(token) {
       return;
     }
 
-    // Unlocked: show letter content directly (or via open button if user prefers)
+    // Unlocked: show letter content directly
+    // Set source identifier in letter meta before showing content
+    const metaEl = document.getElementById('letterMeta');
+    if (metaEl) {
+      if (fromEmail && data.openAt) {
+        const d = new Date(data.openAt);
+        const yyyy = d.getFullYear();
+        const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+        const dd = d.getDate().toString().padStart(2, '0');
+        metaEl.textContent = `这封信于 ${yyyy}年${mm}月${dd}日 寄达你的邮箱`;
+      } else {
+        metaEl.textContent = '当面送达';
+      }
+    }
+
     showLetterContent(data);
   } catch (err) {
     readMode.style.display = 'none';
@@ -1492,9 +1599,22 @@ function openLetter() {
     .then(res => res.json())
     .then(data => {
       if (data.ok && data.body) {
+        // Set source identifier in meta
+        const metaEl = document.getElementById('letterMeta');
+        if (metaEl) {
+          if (currentFromEmail && data.openAt) {
+            const d = new Date(data.openAt);
+            const yyyy = d.getFullYear();
+            const mm = (d.getMonth() + 1).toString().padStart(2, '0');
+            const dd = d.getDate().toString().padStart(2, '0');
+            metaEl.textContent = `这封信于 ${yyyy}年${mm}月${dd}日 寄达你的邮箱`;
+          } else {
+            metaEl.textContent = '当面送达';
+          }
+        }
         showLetterContent(data);
       } else {
-        showReadMode(currentReadToken);
+        showReadMode(currentReadToken, currentFromEmail);
       }
     })
     .catch(() => {
@@ -1584,13 +1704,22 @@ function route() {
     errorState.style.display = 'none';
     document.querySelector('.app-header').style.display = '';
     currentReadToken = null;
+    currentFromEmail = false;
     return;
   }
 
   if (hash.startsWith('#token/')) {
-    const token = hash.slice(7);
+    // Parse token and query params from hash
+    const hashWithoutPrefix = hash.slice(7);
+    const queryIdx = hashWithoutPrefix.indexOf('?');
+    let token = hashWithoutPrefix;
+    let fromEmail = false;
+    if (queryIdx >= 0) {
+      token = hashWithoutPrefix.slice(0, queryIdx);
+      fromEmail = hashWithoutPrefix.slice(queryIdx + 1).includes('from=email');
+    }
     if (token.length >= 4) {
-      showReadMode(token);
+      showReadMode(token, fromEmail);
       return;
     }
   }
