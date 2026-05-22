@@ -1221,13 +1221,11 @@ btnGenerate.addEventListener('click', async () => {
     paperEl.style.display = 'none';
     btn.style.display = 'none';
 
+    const readUrl = window.location.origin + window.location.pathname + '#token/' + currentToken;
+
     if (hasEmail) {
       // ============ EMAIL MODE ============
-      qrDisplay.style.display = 'none';
       emailSuccessInfo.style.display = 'block';
-      document.getElementById('btnCopyLink').style.display = 'none';
-      document.querySelector('[onclick="openPrintOverlay()"]').style.display = 'none';
-
       resultTitle.textContent = '信件已投递';
       const recipient = letter.to || '亲爱的朋友';
 
@@ -1242,47 +1240,42 @@ btnGenerate.addEventListener('click', async () => {
         emailDeliveryInfo.textContent = '邮件通知已发送，信件现在就可以打开';
       }
       emailDeliveryRecipient.textContent = `收件人：${recipient}（${email}）`;
-
-      resultSection.classList.add('show');
-      resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else {
       // ============ QR MODE (existing flow) ============
-      const readUrl = window.location.origin + window.location.pathname + '#token/' + currentToken;
-
       emailSuccessInfo.style.display = 'none';
-      qrDisplay.style.display = '';
-      document.getElementById('btnCopyLink').style.display = '';
-      document.querySelector('[onclick="openPrintOverlay()"]').style.display = '';
-
-      // Generate QR
-      qrFrame.innerHTML = '';
-      new QRCode(qrFrame, {
-        text: readUrl,
-        width: 180,
-        height: 180,
-        colorDark: themes[currentTheme].ink,
-        colorLight: '#ffffff',
-        correctLevel: QRCode.CorrectLevel.M
-      });
-
-      const recipient = letter.to || '亲爱的朋友';
-      qrLabel.textContent = '致 ' + recipient;
-
       resultTitle.textContent = '信已备好';
       resultSub.textContent = '将下方二维码保存或打印，送给对方';
-
-      if (openAt) {
-        qrDeliveryHint.textContent = '🕐 ' + formatDeliveryHint(openAt);
-      } else {
-        qrDeliveryHint.textContent = '';
-      }
-
-      qrDisplay.style.background = themes[currentTheme].card;
-      qrDisplay.style.borderColor = themes[currentTheme].border;
-
-      resultSection.classList.add('show');
-      resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
+
+    // ============ QR 码（两种模式都生成）===========
+    qrDisplay.style.display = '';
+    document.getElementById('btnCopyLink').style.display = '';
+    document.querySelector('[onclick="openPrintOverlay()"]').style.display = '';
+
+    qrFrame.innerHTML = '';
+    new QRCode(qrFrame, {
+      text: readUrl,
+      width: 180,
+      height: 180,
+      colorDark: themes[currentTheme].ink,
+      colorLight: '#ffffff',
+      correctLevel: QRCode.CorrectLevel.M
+    });
+
+    const recipient = letter.to || '亲爱的朋友';
+    qrLabel.textContent = '致 ' + recipient;
+
+    if (openAt) {
+      qrDeliveryHint.textContent = '🕐 ' + formatDeliveryHint(openAt);
+    } else {
+      qrDeliveryHint.textContent = '';
+    }
+
+    qrDisplay.style.background = themes[currentTheme].card;
+    qrDisplay.style.borderColor = themes[currentTheme].border;
+
+    resultSection.classList.add('show');
+    resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
   } catch (err) {
     alert('寄信失败：' + err.message + '\n\n请确认 API_BASE 已配置为你的 Worker 地址');
     btn.disabled = false;
