@@ -24,33 +24,85 @@ function buildHtml(letter) {
   const senderName = letter.from || '匿名';
   const letterUrl = `${SITE_URL}/#token/${letter._id}?from=email`;
 
-  return `
-    <div style="font-family: 'Georgia', 'Noto Serif SC', serif; max-width: 600px; margin: 0 auto; padding: 40px 20px; background: #faf6f0;">
-      <div style="text-align: center; font-size: 48px; margin-bottom: 16px;">✉️</div>
-      <div style="background: #fffef9; border-radius: 2px; padding: 36px 32px; box-shadow: 0 2px 24px rgba(60,40,20,0.08);">
-        <p style="font-size: 18px; color: #3d322b; margin-bottom: 20px;">
-          致 <strong>${recipientName}</strong>：
-        </p>
-        <p style="font-size: 16px; color: #5a4c42; line-height: 1.8; margin-bottom: 28px;">
-          你收到了一封来自「寄信」的信件。
-          <br>寄信人 ${senderName} 写了一封信，正在等待你开启。
-        </p>
-        <div style="text-align: center; margin-bottom: 32px;">
-          <a href="${letterUrl}" style="display: inline-block; padding: 14px 36px; background: #3d322b; color: #faf6f0; text-decoration: none; font-size: 16px; letter-spacing: 2px; border-radius: 2px;">
-            阅读这封信
-          </a>
-        </div>
-        <p style="font-size: 12px; color: #8b7a6b; text-align: center; margin: 0;">
-          「寄信」—— 寄往未来的某个时刻
-        </p>
-        <hr style="border: none; border-top: 1px solid #e0d5c7; margin: 24px 0;">
-        <p style="font-size: 11px; color: #a09080; text-align: center; margin: 0;">
-          如果按钮无法点击，请复制以下链接到浏览器打开：<br>
-          <span style="color: #8b7a6b;">${letterUrl}</span>
-        </p>
-      </div>
-    </div>
-  `;
+  // 国内邮箱兼容版：全行内样式 + table 布局，无 JS/CSS动画/Flex/背景图
+  return `<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>你收到了一封信</title>
+</head>
+<body style="margin:0;padding:0;background-color:#f5f0e8;">
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f5f0e8;padding:40px 0;">
+  <tr>
+    <td align="center">
+      <table cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center" style="font-size:48px;padding-bottom:16px;">✉️</td>
+        </tr>
+      </table>
+
+      <table width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;background-color:#fffef9;border-top:4px solid #c44536;">
+        <tr>
+          <td style="padding:36px 32px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif;font-size:18px;color:#3d322b;padding-bottom:20px;">
+                  致 <strong>${recipientName}</strong>：
+                </td>
+              </tr>
+            </table>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif;font-size:16px;color:#5a4c42;line-height:28px;padding-bottom:28px;">
+                  你收到了一封来自「寄信」的信件。
+                  <br>寄信人 ${senderName} 写了一封信，正在等待你开启。
+                </td>
+              </tr>
+            </table>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" style="padding-bottom:32px;">
+                  <a href="${letterUrl}" style="display:inline-block;padding:14px 36px;background-color:#3d322b;color:#faf6f0;text-decoration:none;font-size:16px;font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif;letter-spacing:2px;">
+                    阅读这封信
+                  </a>
+                </td>
+              </tr>
+            </table>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" style="font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif;font-size:12px;color:#8b7a6b;padding:0;">
+                  「寄信」—— 寄往未来的某个时刻
+                </td>
+              </tr>
+            </table>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding:24px 0;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td style="border-top:1px solid #e0d5c7;"></td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td align="center" style="font-family:'PingFang SC','Microsoft YaHei','Hiragino Sans GB',sans-serif;font-size:11px;color:#a09080;padding:0;line-height:18px;">
+                  如果按钮无法点击，请复制以下链接到浏览器打开：<br>
+                  <span style="color:#8b7a6b;">${letterUrl}</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+</body>
+</html>`;
 }
 
 function buildText(letter) {
@@ -73,6 +125,7 @@ exports.main = async (event, context) => {
   if (event.httpMethod === 'OPTIONS') return response({}, 200);
 
   const stats = { processed: 0, sent: 0, failed: 0, skipped: 0 };
+  const now = new Date();
 
   try {
     const { data: letters } = await db.collection('letters')
@@ -88,12 +141,20 @@ exports.main = async (event, context) => {
       return response({ ok: true, stats });
     }
 
-    stats.processed = letters.length;
+    // 过滤：只发送已到时间的信件
+    // openAt 不存在或为 null = 立即发送
+    // openAt 存在且 <= now = 定时发送已到时间
+    const readyLetters = letters.filter(l => {
+      if (!l.openAt) return true;
+      return new Date(l.openAt) <= now;
+    });
 
-    for (let i = 0; i < letters.length; i++) {
-      const letter = letters[i];
+    stats.processed = readyLetters.length;
+    stats.skipped = letters.length - readyLetters.length;
 
-      // Increment attempt count
+    for (let i = 0; i < readyLetters.length; i++) {
+      const letter = readyLetters[i];
+
       await db.collection('letters').doc(letter._id)
         .update({ sendAttempts: db.command.inc(1) });
 
@@ -124,8 +185,8 @@ exports.main = async (event, context) => {
         stats.failed++;
       }
 
-      // Rate limiting: 500ms between sends
-      if (i < letters.length - 1) {
+      // 限流：每次发送间隔 500ms，防止触发 Resend 限制
+      if (i < readyLetters.length - 1) {
         await new Promise(r => setTimeout(r, 500));
       }
     }
