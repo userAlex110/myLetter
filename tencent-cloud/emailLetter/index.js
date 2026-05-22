@@ -129,12 +129,11 @@ exports.main = async (event, context) => {
 
   try {
     const { data: letters } = await db.collection('letters')
-      .where(db.command.and([
-        db.command.exists('email'),
-        db.command.neq('email', ''),
-        db.command.eq('sent', false),
-        db.command.lt('sendAttempts', 3)
-      ]))
+      .where({
+        email: db.command.neq(''),
+        sent: false,
+        sendAttempts: db.command.lt(3)
+      })
       .get();
 
     if (!letters || letters.length === 0) {
