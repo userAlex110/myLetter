@@ -370,6 +370,77 @@
     margin-top: 4px;
   }
 
+  /* ============ EMAIL SUCCESS CARD ============ */
+  .email-success-card {
+    background: var(--card);
+    border-radius: 2px;
+    padding: 32px 36px 28px;
+    box-shadow: var(--shadow);
+    text-align: center;
+    position: relative;
+    border: 1px solid var(--border);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .email-success-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--accent);
+    opacity: 0.6;
+  }
+  .email-success-card .stamp-icon {
+    font-size: 40px;
+    margin-bottom: 14px;
+    display: inline-block;
+    opacity: 0.85;
+  }
+  .email-success-card .success-title {
+    font-family: var(--font-art);
+    font-size: 22px;
+    color: var(--ink);
+    letter-spacing: 4px;
+    margin-bottom: 16px;
+  }
+  .email-success-card .delivery-detail {
+    font-size: 13px;
+    color: var(--ink-light);
+    line-height: 1.9;
+    margin-bottom: 6px;
+  }
+  .email-success-card .delivery-detail strong {
+    color: var(--ink);
+    font-weight: 500;
+  }
+  .email-success-card .recipient-line {
+    font-size: 12px;
+    color: var(--ink-light);
+    letter-spacing: 0.5px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    display: inline-block;
+  }
+  .email-success-card .divider-ornament {
+    margin: 14px auto;
+    width: 40px;
+    height: 1px;
+    background: var(--border);
+    position: relative;
+  }
+  .email-success-card .divider-ornament::before {
+    content: '◆';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 8px;
+    color: var(--accent);
+    background: var(--card);
+    padding: 0 6px;
+  }
+
   /* ============ READ MODE ============ */
   .read-mode .letter-stage {
     min-height: 60vh;
@@ -891,11 +962,12 @@
       </div>
 
       <!-- Email success info (hidden by default) -->
-      <div class="qr-display" id="emailSuccessInfo" style="display:none;">
-        <div style="font-size:52px;margin-bottom:16px;">🎉</div>
-        <div style="font-family:var(--font-art);font-size:20px;color:var(--ink);letter-spacing:3px;margin-bottom:12px;">信件已投递</div>
-        <div id="emailDeliveryInfo" style="font-size:13px;color:var(--ink-light);line-height:1.8;margin-bottom:8px;"></div>
-        <div id="emailDeliveryRecipient" style="font-size:12px;color:var(--ink-light);letter-spacing:0.5px;"></div>
+      <div class="email-success-card" id="emailSuccessInfo" style="display:none;">
+        <div class="stamp-icon">✉️</div>
+        <div class="success-title">信件已投递</div>
+        <div class="divider-ornament"></div>
+        <div class="delivery-detail" id="emailDeliveryInfo"></div>
+        <div class="recipient-line" id="emailDeliveryRecipient"></div>
       </div>
 
       <div class="qr-display" id="qrDisplay">
@@ -1235,11 +1307,11 @@ btnGenerate.addEventListener('click', async () => {
         const dd = d.getDate().toString().padStart(2, '0');
         const hh = d.getHours().toString().padStart(2, '0');
         const mi = d.getMinutes().toString().padStart(2, '0');
-        emailDeliveryInfo.textContent = `邮件通知已发送，信件将在 ${mm}月${dd}日 ${hh}:${mi} 解锁`;
+        emailDeliveryInfo.innerHTML = `邮件通知已发送<br>信件将于 <strong>${mm}月${dd}日 ${hh}:${mi}</strong> 解锁`;
       } else {
-        emailDeliveryInfo.textContent = '邮件通知已发送，信件现在就可以打开';
+        emailDeliveryInfo.innerHTML = '邮件通知已发送<br>信件现在就可以打开';
       }
-      emailDeliveryRecipient.textContent = `收件人：${recipient}（${email}）`;
+      emailDeliveryRecipient.textContent = `致 ${recipient}  ·  ${email}`;
     } else {
       // ============ QR MODE (existing flow) ============
       emailSuccessInfo.style.display = 'none';
