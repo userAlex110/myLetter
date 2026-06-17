@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>设计资产预览 — 寄信 AI 视觉身份</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #f0ebe3;
+    color: #2a2419;
+    padding: 40px 20px;
+    line-height: 1.6;
+  }
+
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  /* ============ 页头 ============ */
+  .page-header {
+    text-align: center;
+    margin-bottom: 60px;
+    padding-bottom: 30px;
+    border-bottom: 2px solid #d6cdb8;
+  }
+  .page-header h1 {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 42px;
+    color: #2a2419;
+    letter-spacing: 6px;
+    margin-bottom: 12px;
+  }
+  .page-header .sub {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    color: #6a5d4f;
+    letter-spacing: 2px;
+  }
+  .page-header .stats {
+    margin-top: 20px;
+    font-size: 13px;
+    color: #8a7a6b;
+  }
+  .page-header .stats strong {
+    color: #c44536;
+    font-weight: 600;
+  }
+
+  /* ============ 章节标题 ============ */
+  .section {
+    margin-bottom: 80px;
+  }
+  .section-title {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 28px;
+    color: #2a2419;
+    letter-spacing: 4px;
+    margin-bottom: 8px;
+    padding-left: 16px;
+    border-left: 4px solid #c44536;
+  }
+  .section-desc {
+    font-size: 13px;
+    color: #6a5d4f;
+    margin-bottom: 30px;
+    padding-left: 20px;
+    letter-spacing: 0.5px;
+  }
+
+  /* ============ 配色盘网格 ============ */
+  .palette-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 24px;
+  }
+
+  .palette-card {
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    background: #fff;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  .palette-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+  }
+
+  /* 预览区:模拟信纸 */
+  .palette-preview {
+    padding: 28px 24px 24px;
+    position: relative;
+    min-height: 200px;
+  }
+  .palette-preview::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+  }
+  .palette-preview .preview-meta {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    opacity: 0.7;
+  }
+  .palette-preview .preview-title {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 20px;
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+  }
+  .palette-preview .preview-body {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 13px;
+    line-height: 1.9;
+    margin-bottom: 16px;
+  }
+  .palette-preview .preview-sig {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 13px;
+    text-align: right;
+    padding-top: 12px;
+    border-top: 1px dashed currentColor;
+    opacity: 0.8;
+  }
+  .palette-preview .preview-btn {
+    display: inline-block;
+    padding: 6px 16px;
+    font-size: 11px;
+    letter-spacing: 1px;
+    border-radius: 2px;
+    margin-top: 8px;
+  }
+
+  /* 信息区 */
+  .palette-info {
+    padding: 16px 20px;
+    background: #faf8f3;
+    border-top: 1px solid #ede8df;
+  }
+  .palette-info .name {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 17px;
+    color: #2a2419;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .palette-info .mood {
+    font-size: 12px;
+    color: #8a7a6b;
+    margin-bottom: 12px;
+    letter-spacing: 0.5px;
+  }
+  .palette-info .swatches {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .palette-info .swatch {
+    flex: 1;
+    height: 24px;
+    border-radius: 2px;
+    position: relative;
+    cursor: pointer;
+  }
+  .palette-info .swatch::after {
+    content: attr(data-color);
+    position: absolute;
+    bottom: -18px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 9px;
+    color: #8a7a6b;
+    font-family: monospace;
+    white-space: nowrap;
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .palette-info .swatch:hover::after {
+    opacity: 1;
+  }
+  .palette-info .swatch-labels {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+  }
+  .palette-info .swatch-label {
+    flex: 1;
+    font-size: 9px;
+    color: #a09080;
+    text-align: center;
+    letter-spacing: 0.3px;
+  }
+
+  /* ============ 装饰展示 ============ */
+  .deco-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 24px;
+  }
+  .deco-card {
+    background: #fffef9;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border-top: 4px solid #c44536;
+  }
+  .deco-preview {
+    position: relative;
+    min-height: 240px;
+    padding: 32px 28px;
+    background: #fffef9;
+    overflow: hidden;
+  }
+  .deco-preview .deco-title {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 22px;
+    color: #3d322b;
+    letter-spacing: 3px;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+  }
+  .deco-preview .deco-body {
+    font-family: 'Noto Serif SC', serif;
+    font-size: 14px;
+    line-height: 2;
+    color: #3d322b;
+    position: relative;
+    z-index: 2;
+  }
+  .deco-info {
+    padding: 14px 20px;
+    background: #faf8f3;
+    border-top: 1px solid #ede8df;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .deco-info .deco-name {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 16px;
+    color: #2a2419;
+    letter-spacing: 2px;
+  }
+  .deco-info .deco-mood {
+    font-size: 11px;
+    color: #8a7a6b;
+    letter-spacing: 0.5px;
+  }
+
+  /* ============ 字体展示 ============ */
+  .font-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(500px, 1fr));
+    gap: 24px;
+  }
+  .font-card {
+    background: #fffef9;
+    border-radius: 4px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border-top: 4px solid #b8956a;
+    padding: 32px 28px;
+  }
+  .font-card .font-label {
+    font-size: 11px;
+    color: #8a7a6b;
+    letter-spacing: 2px;
+    margin-bottom: 6px;
+    text-transform: uppercase;
+  }
+  .font-card .font-name {
+    font-family: 'ZCOOL XiaoWei', serif;
+    font-size: 18px;
+    color: #2a2419;
+    letter-spacing: 2px;
+    margin-bottom: 4px;
+  }
+  .font-card .font-mood {
+    font-size: 12px;
+    color: #8a7a6b;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px dashed #e0d5c7;
+  }
+  .font-card .font-sample-title {
+    margin-bottom: 16px;
+    letter-spacing: 4px;
+  }
+  .font-card .font-sample-body {
+    font-size: 15px;
+    line-height: 2;
+    color: #3d322b;
+  }
+  .font-card .font-stack {
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid #e0d5c7;
+    font-size: 10px;
+    color: #a09080;
+    font-family: monospace;
+    line-height: 1.6;
+    word-break: break-all;
+  }
+
+  /* ============ 组合展示 ============ */
+  .combo-section {
+    background: #fffef9;
+    border-radius: 4px;
+    padding: 40px 32px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+    border-top: 4px solid #c44536;
+  }
+  .combo-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 24px;
+    margin-top: 24px;
+  }
+  .combo-card {
+    border-radius: 4px;
+    overflow: hidden;
+    position: relative;
+    min-height: 280px;
+    padding: 28px 24px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+  .combo-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 4px;
+  }
+  .combo-card .combo-meta {
+    font-size: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    opacity: 0.7;
+  }
+  .combo-card .combo-title {
+    font-size: 20px;
+    letter-spacing: 3px;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 2;
+  }
+  .combo-card .combo-body {
+    font-size: 13px;
+    line-height: 1.9;
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 2;
+  }
+  .combo-card .combo-sig {
+    font-size: 12px;
+    text-align: right;
+    padding-top: 12px;
+    border-top: 1px dashed currentColor;
+    opacity: 0.8;
+    position: relative;
+    z-index: 2;
+  }
+  .combo-card .combo-tag {
+    position: absolute;
+    bottom: 12px;
+    left: 24px;
+    font-size: 10px;
+    letter-spacing: 1px;
+    opacity: 0.6;
+    z-index: 2;
+  }
+
+  /* ============ 响应式 ============ */
+  @media (max-width: 768px) {
+    body { padding: 20px 12px; }
+    .page-header h1 { font-size: 30px; letter-spacing: 4px; }
+    .palette-grid, .deco-grid, .font-grid, .combo-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- ============ 页头 ============ -->
+  <div class="page-header">
+    <h1>设计资产预览</h1>
+    <div class="sub">寄信 · AI 视觉身份系统</div>
+    <div class="stats">
+      <strong>15</strong> 套配色盘 × <strong>7</strong> 种装饰 × <strong>4</strong> 种字体 = <strong>420</strong> 种组合
+    </div>
+  </div>
+
+  <!-- ============ 第一部分:15 套配色盘 ============ -->
+  <div class="section">
+    <div class="section-title">一、15 套配色盘</div>
+    <div class="section-desc">每套 6 个 CSS 变量,直接对应 :root 体系。前 4 套复用现有主题,后 11 套为新设计。鼠标悬停色块可查看色值。</div>
+    <div class="palette-grid" id="paletteGrid"></div>
+  </div>
+
+  <!-- ============ 第二部分:7 种装饰 ============ -->
+  <div class="section">
+    <div class="section-title">二、7 种装饰</div>
+    <div class="section-desc">所有装饰用 currentColor 取色,跟随主题变化。透明度 0.1-0.15,不干扰阅读。</div>
+    <div class="deco-grid" id="decoGrid"></div>
+  </div>
+
+  <!-- ============ 第三部分:4 种字体搭配 ============ -->
+  <div class="section">
+    <div class="section-title">三、4 种字体搭配</div>
+    <div class="section-desc">复用现有 Google Fonts 加载,零性能成本。通过字重和字体栈切换气质。</div>
+    <div class="font-grid" id="fontGrid"></div>
+  </div>
+
+  <!-- ============ 第四部分:组合效果预览 ============ -->
+  <div class="section">
+    <div class="section-title">四、组合效果预览</div>
+    <div class="section-desc">展示 6 个典型组合,模拟真实读信场景。这就是 AI 为不同情绪信件匹配出的最终效果。</div>
+    <div class="combo-section">
+      <div class="combo-grid" id="comboGrid"></div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+// ============ 15 套配色盘数据 ============
+const palettes = [
+  { id: 1, name: '暖光', mood: '温暖·日常', colors: { card: '#fffef9', bg: '#f5f0e8', accent: '#c44536', ink: '#3d322b', border: '#e0d5c7', gold: '#b8956a' } },
+  { id: 2, name: '静谧蓝', mood: '平静·理性', colors: { card: '#fafcfe', bg: '#f0f4f8', accent: '#4a7c96', ink: '#2c3e4f', border: '#d0dae4', gold: '#7a9bb0' } },
+  { id: 3, name: '樱花粉', mood: '温柔·恋爱', colors: { card: '#fffafa', bg: '#f8f0f2', accent: '#c4657a', ink: '#4a2c34', border: '#e8d4da', gold: '#d4a0b0' } },
+  { id: 4, name: '薄荷绿', mood: '清新·希望', colors: { card: '#fafffb', bg: '#f0f6f2', accent: '#5a8a72', ink: '#2c3e34', border: '#d0e4d8', gold: '#8ab098' } },
+  { id: 5, name: '思念蓝灰', mood: '思念·感伤', colors: { card: '#f8fafc', bg: '#eef2f6', accent: '#6b7d8c', ink: '#2d3842', border: '#d4dce4', gold: '#9aa8b5' } },
+  { id: 6, name: '墨韵', mood: '庄重·传统', colors: { card: '#faf8f3', bg: '#ede8df', accent: '#4a3f2c', ink: '#2a2419', border: '#d6cdb8', gold: '#8a7a55' } },
+  { id: 7, name: '晨雾', mood: '朦胧·初遇', colors: { card: '#fcfdfd', bg: '#f2f5f4', accent: '#7a8c8a', ink: '#34413f', border: '#d4dedc', gold: '#a0b0ae' } },
+  { id: 8, name: '暮金', mood: '期许·回忆', colors: { card: '#fffdf5', bg: '#f6efe0', accent: '#b8843a', ink: '#3d2e15', border: '#e4d5b8', gold: '#c8a45c' } },
+  { id: 9, name: '暗夜星河', mood: '梦想·深邃', colors: { card: '#2a2438', bg: '#1e1929', accent: '#c9a96e', ink: '#e8e2d4', border: '#3d3550', gold: '#d4b87a' }, dark: true },
+  { id: 10, name: '初雪', mood: '纯净·祝福', colors: { card: '#ffffff', bg: '#f4f7fb', accent: '#7a8ca8', ink: '#2c3e5a', border: '#d8e0ec', gold: '#a8b8d0' } },
+  { id: 11, name: '秋意', mood: '丰收·感恩', colors: { card: '#fdf8f0', bg: '#f5ecdc', accent: '#a85c2a', ink: '#3d2818', border: '#e0d0b8', gold: '#c08550' } },
+  { id: 12, name: '海雾', mood: '辽阔·释然', colors: { card: '#f8fbfb', bg: '#ecf3f3', accent: '#4a7a7c', ink: '#243c3e', border: '#c8dede', gold: '#7aa5a8' } },
+  { id: 13, name: '茉莉', mood: '淡雅·友谊', colors: { card: '#fffef7', bg: '#f8f5ec', accent: '#8a7a4a', ink: '#3d3520', border: '#e0dac8', gold: '#b0a070' } },
+  { id: 14, name: '砚台', mood: '沉稳·承诺', colors: { card: '#f5f3ee', bg: '#e8e4da', accent: '#3d3a35', ink: '#1f1d1a', border: '#ccc6b8', gold: '#6a655c' } },
+  { id: 15, name: '朝霞', mood: '活力·鼓励', colors: { card: '#fff8f5', bg: '#fbf0ea', accent: '#d4583a', ink: '#3d201a', border: '#ecd4c8', gold: '#e08868' } }
+];
+
+// ============ 7 种装饰 SVG ============
+const decorations = {
+  cherry: {
+    name: '樱花飘落', mood: '温柔·恋爱·春日',
+    svg: `<svg width="140" height="140" viewBox="0 0 140 140" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:-10px;right:-10px;opacity:0.18;pointer-events:none;color:#c44536;">
+      <g fill="currentColor">
+        <path d="M30,25 C28,18 34,14 38,20 C36,27 32,28 30,25 Z"/>
+        <path d="M75,35 C73,28 79,24 83,30 C81,37 77,38 75,35 Z" opacity="0.7"/>
+        <path d="M105,65 C103,58 109,54 113,60 C111,67 107,68 105,65 Z" opacity="0.5"/>
+        <path d="M50,80 C48,73 54,69 58,75 C56,82 52,83 50,80 Z" opacity="0.6"/>
+        <g transform="translate(85,90)">
+          <circle cx="0" cy="0" r="2.5"/>
+          <path d="M0,-10 C3,-7 3,-3 0,0 C-3,-3 -3,-7 0,-10 Z"/>
+          <path d="M10,0 C7,3 3,3 0,0 C3,-3 7,-3 10,0 Z"/>
+          <path d="M0,10 C-3,7 -3,3 0,0 C3,3 3,7 0,10 Z"/>
+          <path d="M-10,0 C-7,-3 -3,-3 0,0 C-3,3 -7,3 -10,0 Z"/>
+        </g>
+      </g>
+    </svg>`
+  },
+  wave: {
+    name: '海浪', mood: '思念·远方·辽阔',
+    svg: `<svg width="100%" height="60" viewBox="0 0 400 60" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:0;left:0;opacity:0.15;pointer-events:none;color:#6b7d8c;">
+      <g fill="none" stroke="currentColor" stroke-width="1.2">
+        <path d="M0,35 Q50,20 100,35 T200,35 T300,35 T400,35"/>
+        <path d="M0,45 Q50,30 100,45 T200,45 T300,45 T400,45" opacity="0.6"/>
+        <path d="M0,55 Q50,40 100,55 T200,55 T300,55 T400,55" opacity="0.3"/>
+      </g>
+    </svg>`
+  },
+  mountain: {
+    name: '远山', mood: '庄重·期许·坚定',
+    svg: `<svg width="100%" height="70" viewBox="0 0 400 70" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:0;left:0;opacity:0.15;pointer-events:none;color:#3d322b;">
+      <g fill="currentColor">
+        <path d="M0,70 L60,25 L100,45 L160,15 L220,40 L280,20 L340,35 L400,18 L400,70 Z"/>
+        <path d="M0,70 L80,40 L140,50 L200,35 L260,48 L320,38 L400,45 L400,70 Z" opacity="0.4"/>
+      </g>
+    </svg>`
+  },
+  star: {
+    name: '星辰', mood: '梦想·未来·深邃',
+    svg: `<svg width="100%" height="100%" viewBox="0 0 400 600" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;opacity:0.2;pointer-events:none;color:#b8956a;">
+      <g fill="currentColor">
+        <path d="M50,40 L52,48 L60,50 L52,52 L50,60 L48,52 L40,50 L48,48 Z"/>
+        <path d="M340,30 L341,35 L346,36 L341,37 L340,42 L339,37 L334,36 L339,35 Z" opacity="0.7"/>
+        <path d="M80,520 L82,528 L90,530 L82,532 L80,540 L78,532 L70,530 L78,528 Z" opacity="0.6"/>
+        <path d="M330,540 L332,548 L340,550 L332,552 L330,560 L328,552 L320,550 L328,548 Z" opacity="0.5"/>
+        <circle cx="200" cy="25" r="1.5"/>
+        <circle cx="150" cy="570" r="1.5" opacity="0.6"/>
+        <circle cx="300" cy="300" r="1" opacity="0.4"/>
+        <circle cx="100" cy="200" r="1" opacity="0.5"/>
+      </g>
+    </svg>`
+  },
+  leaf: {
+    name: '叶脉', mood: '平静·自然·生长',
+    svg: `<svg width="80" height="200" viewBox="0 0 80 200" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:50%;left:-15px;transform:translateY(-50%);opacity:0.15;pointer-events:none;color:#5a8a72;">
+      <g fill="none" stroke="currentColor" stroke-width="1">
+        <path d="M40,10 Q35,100 40,190"/>
+        <path d="M40,30 Q25,35 15,45"/>
+        <path d="M40,30 Q55,35 65,45"/>
+        <path d="M40,60 Q22,68 10,80"/>
+        <path d="M40,60 Q58,68 70,80"/>
+        <path d="M40,95 Q20,105 8,120"/>
+        <path d="M40,95 Q60,105 72,120"/>
+        <path d="M40,130 Q22,140 12,155"/>
+        <path d="M40,130 Q58,140 68,155"/>
+        <path d="M40,165 Q28,172 20,182"/>
+        <path d="M40,165 Q52,172 60,182"/>
+      </g>
+    </svg>`
+  },
+  seal: {
+    name: '印章', mood: '正式·承诺·郑重',
+    svg: `<svg width="70" height="70" viewBox="0 0 70 70" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:20px;right:20px;opacity:0.2;pointer-events:none;color:#c44536;">
+      <g fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="8" y="8" width="54" height="54" rx="2"/>
+        <rect x="14" y="14" width="42" height="42" rx="1" stroke-width="0.8"/>
+        <g stroke-width="2" fill="currentColor" stroke="none">
+          <rect x="28" y="22" width="14" height="3"/>
+          <rect x="28" y="28" width="14" height="2"/>
+          <rect x="28" y="33" width="3" height="12"/>
+          <rect x="39" y="33" width="3" height="12"/>
+          <rect x="28" y="44" width="14" height="2"/>
+        </g>
+      </g>
+    </svg>`
+  },
+  minimal: {
+    name: '极简', mood: '通用·现代·克制',
+    svg: `<svg width="120" height="20" viewBox="0 0 120 20" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:8px auto 16px;opacity:0.4;pointer-events:none;color:#b8956a;">
+      <g fill="currentColor">
+        <line x1="10" y1="10" x2="50" y2="10" stroke="currentColor" stroke-width="0.8"/>
+        <line x1="70" y1="10" x2="110" y2="10" stroke="currentColor" stroke-width="0.8"/>
+        <path d="M60,6 L64,10 L60,14 L56,10 Z"/>
+      </g>
+    </svg>`
+  }
+};
+
+// ============ 4 种字体搭配 ============
+const fontPairs = [
+  {
+    id: 'art-warm', name: 'art-warm', mood: '温润·日常',
+    titleFont: "'ZCOOL XiaoWei', 'Noto Serif SC', serif",
+    bodyFont: "'Noto Serif SC', 'Georgia', 'STSong', serif",
+    titleWeight: 400, bodyWeight: 400,
+    stack: "标题: 'ZCOOL XiaoWei', 'Noto Serif SC', serif\n正文: 'Noto Serif SC', 'Georgia', 'STSong', serif"
+  },
+  {
+    id: 'display-classic', name: 'display-classic', mood: '典雅·西式·情书',
+    titleFont: "'Playfair Display', 'Noto Serif SC', serif",
+    bodyFont: "'Noto Serif SC', 'Georgia', serif",
+    titleWeight: 600, bodyWeight: 400,
+    stack: "标题: 'Playfair Display', 'Noto Serif SC', serif\n正文: 'Noto Serif SC', 'Georgia', serif"
+  },
+  {
+    id: 'serif-elegant', name: 'serif-elegant', mood: '庄重·家书·承诺',
+    titleFont: "'Noto Serif SC', serif",
+    bodyFont: "'Noto Serif SC', serif",
+    titleWeight: 600, bodyWeight: 400,
+    stack: "标题: 'Noto Serif SC', serif (weight 600)\n正文: 'Noto Serif SC', serif (weight 400)"
+  },
+  {
+    id: 'art-bold', name: 'art-bold', mood: '有力·鼓励·宣言',
+    titleFont: "'ZCOOL XiaoWei', 'Noto Serif SC', serif",
+    bodyFont: "'Noto Serif SC', serif",
+    titleWeight: 400, bodyWeight: 500,
+    stack: "标题: 'ZCOOL XiaoWei', 'Noto Serif SC', serif\n正文: 'Noto Serif SC', serif (weight 500)"
+  }
+];
+
+// ============ 组合预览样本 ============
+const combos = [
+  {
+    paletteId: 5, deco: 'wave', font: 'serif-elegant',
+    mood: '思念', sample: '三年了。\n你还记得那个夏天吗？\n海边的风，和你笑起来的样子。',
+    sig: '—— 老朋友', tag: '思念蓝灰 + 海浪 + 庄重'
+  },
+  {
+    paletteId: 3, deco: 'cherry', font: 'art-warm',
+    mood: '温柔', sample: '想告诉你，\n今天的樱花开了。\n第一眼就想到了你。',
+    sig: '—— 你的', tag: '樱花粉 + 樱花 + 温润'
+  },
+  {
+    paletteId: 9, deco: 'star', font: 'art-bold',
+    mood: '梦想', sample: '致未来的自己：\n愿你依然相信，\n星辰值得奔赴。',
+    sig: '—— 三年前的你', tag: '暗夜星河 + 星辰 + 有力'
+  },
+  {
+    paletteId: 8, deco: 'mountain', font: 'serif-elegant',
+    mood: '期许', sample: '远方的山，\n一层叠着一层。\n愿你翻过每一座，都看见光。',
+    sig: '—— 父亲', tag: '暮金 + 远山 + 庄重'
+  },
+  {
+    paletteId: 6, deco: 'seal', font: 'serif-elegant',
+    mood: '承诺', sample: '此信为证。\n所言句句属实，\n所诺字字千金。',
+    sig: '—— 立信人', tag: '墨韵 + 印章 + 庄重'
+  },
+  {
+    paletteId: 12, deco: 'leaf', font: 'art-warm',
+    mood: '释然', sample: '风停了。\n叶子落下来的时候，\n我终于放下了。',
+    sig: '—— 我', tag: '海雾 + 叶脉 + 温润'
+  }
+];
+
+// ============ 渲染配色盘 ============
+function renderPalettes() {
+  const grid = document.getElementById('paletteGrid');
+  palettes.forEach(p => {
+    const c = p.colors;
+    const isDark = p.dark;
+    const card = document.createElement('div');
+    card.className = 'palette-card';
+    card.innerHTML = `
+      <div class="palette-preview" style="background:${c.card};color:${c.ink};">
+        <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${c.accent};"></div>
+        <div class="preview-meta" style="color:${c.ink};">A LETTER FOR YOU</div>
+        <div class="preview-title">致 朋友</div>
+        <div class="preview-body">这是一封写给你的信。文字会慢慢展开，像有人正念给你听。</div>
+        <div class="preview-sig">—— 寄信人</div>
+        <div class="preview-btn" style="background:${c.ink};color:${c.card};">阅读这封信</div>
+      </div>
+      <div class="palette-info">
+        <div class="name">${p.id}. ${p.name}${isDark ? ' · 深色' : ''}</div>
+        <div class="mood">${p.mood}</div>
+        <div class="swatches">
+          <div class="swatch" style="background:${c.card};border:1px solid #ddd;" data-color="${c.card}"></div>
+          <div class="swatch" style="background:${c.bg};" data-color="${c.bg}"></div>
+          <div class="swatch" style="background:${c.accent};" data-color="${c.accent}"></div>
+          <div class="swatch" style="background:${c.ink};" data-color="${c.ink}"></div>
+          <div class="swatch" style="background:${c.border};" data-color="${c.border}"></div>
+          <div class="swatch" style="background:${c.gold};" data-color="${c.gold}"></div>
+        </div>
+        <div class="swatch-labels">
+          <div class="swatch-label">card</div>
+          <div class="swatch-label">bg</div>
+          <div class="swatch-label">accent</div>
+          <div class="swatch-label">ink</div>
+          <div class="swatch-label">border</div>
+          <div class="swatch-label">gold</div>
+        </div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ============ 渲染装饰 ============
+function renderDecorations() {
+  const grid = document.getElementById('decoGrid');
+  Object.keys(decorations).forEach(key => {
+    const d = decorations[key];
+    const card = document.createElement('div');
+    card.className = 'deco-card';
+    card.innerHTML = `
+      <div class="deco-preview">
+        ${d.svg}
+        <div class="deco-title">致 朋友</div>
+        <div class="deco-body">这是一封写给你的信。<br>文字会慢慢展开，<br>像有人正念给你听。</div>
+      </div>
+      <div class="deco-info">
+        <div class="deco-name">${key}</div>
+        <div class="deco-mood">${d.name} · ${d.mood}</div>
+      </div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ============ 渲染字体 ============
+function renderFonts() {
+  const grid = document.getElementById('fontGrid');
+  fontPairs.forEach(f => {
+    const card = document.createElement('div');
+    card.className = 'font-card';
+    card.innerHTML = `
+      <div class="font-label">FONT PAIR · ${f.id}</div>
+      <div class="font-name">${f.name}</div>
+      <div class="font-mood">${f.mood}</div>
+      <div class="font-sample-title" style="font-family:${f.titleFont};font-weight:${f.titleWeight};font-size:24px;color:#3d322b;">致 亲爱的你</div>
+      <div class="font-sample-body" style="font-family:${f.bodyFont};font-weight:${f.bodyWeight};">这是一封写给你的信。文字会慢慢展开，像有人正念给你听。每个字都有它的重量，每句话都有它的呼吸。</div>
+      <div class="font-stack">${f.stack}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ============ 渲染组合 ============
+function renderCombos() {
+  const grid = document.getElementById('comboGrid');
+  combos.forEach(combo => {
+    const p = palettes.find(x => x.id === combo.paletteId);
+    const f = fontPairs.find(x => x.id === combo.font);
+    const d = decorations[combo.deco];
+    const c = p.colors;
+    const card = document.createElement('div');
+    card.className = 'combo-card';
+    card.style.background = c.card;
+    card.style.color = c.ink;
+    card.style.borderColor = c.accent;
+    card.innerHTML = `
+      <div style="position:absolute;top:0;left:0;right:0;height:4px;background:${c.accent};"></div>
+      ${d.svg.replace(/color:[^;]+;/, `color:${c.accent};`)}
+      <div class="combo-meta" style="color:${c.ink};">AI 读懂了:${combo.mood}</div>
+      <div class="combo-title" style="font-family:${f.titleFont};font-weight:${f.titleWeight};color:${c.ink};">致 朋友</div>
+      <div class="combo-body" style="font-family:${f.bodyFont};font-weight:${f.bodyWeight};color:${c.ink};white-space:pre-line;">${combo.sample}</div>
+      <div class="combo-sig" style="color:${c.ink};">${combo.sig}</div>
+      <div class="combo-tag" style="color:${c.ink};">${combo.tag}</div>
+    `;
+    grid.appendChild(card);
+  });
+}
+
+// ============ 初始化 ============
+renderPalettes();
+renderDecorations();
+renderFonts();
+renderCombos();
+</script>
+</body>
+</html>
