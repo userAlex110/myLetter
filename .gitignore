@@ -5,6 +5,7 @@ Thumbs.db
 # Editor
 .vscode/
 .idea/
+.history/
 *.swp
 *.swo
 *~
@@ -23,6 +24,8 @@ build/
 # Claude Code 本地配置与 skills（如 cloudbase 云开发 AI 规则）
 # 不纳入版本管理；需要时用 npx skills add tencentcloudbase/cloudbase-skills 重新安装
 .claude/
+.agents/
+skills-lock.json
 
 # Misc
 *.log
