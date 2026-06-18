@@ -313,31 +313,106 @@
   }
   .result-section.show { display: block; }
 
-  .result-header {
-    text-align: center;
-    margin-bottom: 20px;
-  }
-  .result-header h2 {
-    font-family: var(--font-art);
-    font-size: 20px;
-    color: var(--ink);
-    letter-spacing: 3px;
-    margin-bottom: 6px;
-  }
-  .result-header p {
-    font-size: 12px;
-    color: var(--ink-light);
-    letter-spacing: 1px;
-  }
-
-  .qr-display {
+  /* Unified delivery card: merges success info + QR into one cohesive block */
+  .delivery-card {
     background: var(--card);
     border-radius: 2px;
-    padding: 36px;
     box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    position: relative;
+    overflow: hidden;
+    animation: slideUp 0.6s ease;
+  }
+  .delivery-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(to right, transparent, var(--accent), transparent);
+  }
+
+  .delivery-card-head {
+    text-align: center;
+    padding: 32px 32px 16px;
+  }
+  .delivery-card-head .wax-seal {
+    width: 52px; height: 52px;
+    margin: 0 auto 14px;
+  }
+  .delivery-card-head .wax-seal svg {
+    width: 100%; height: 100%;
+    color: var(--accent);
+    animation: sealStamp 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  .delivery-card-head .success-title {
+    font-family: var(--font-art);
+    font-size: 22px;
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: 4px;
+    margin: 0 0 4px;
+  }
+  .delivery-card-head .success-sub {
+    font-family: var(--font-display);
+    font-style: italic;
+    font-size: 11px;
+    color: var(--ink-light);
+    letter-spacing: 1.5px;
+    margin: 0;
+  }
+
+  /* Delivery time: now inside delivery-card-head, red accent, prominent */
+  .delivery-card-head .delivery-detail {
+    font-family: var(--font-serif);
+    font-size: 14px;
+    color: var(--accent);
+    line-height: 1.7;
+    margin-top: 12px;
+    letter-spacing: 0.5px;
+  }
+  .delivery-card-head .delivery-detail strong {
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 15px;
+  }
+
+  /* Email recipient: red accent highlight */
+  .email-success-card {
+    padding: 0 32px 12px;
+    text-align: center;
+  }
+  .email-success-card .recipient-line {
+    font-size: 13px;
+    color: var(--accent);
+    letter-spacing: 0.5px;
+    font-weight: 500;
+  }
+
+  /* Ornamental divider between email info and QR */
+  .delivery-divider {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 6px 32px 16px;
+  }
+  .delivery-divider-line {
+    flex: 1;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+    max-width: 80px;
+  }
+  .delivery-divider-diamond {
+    color: var(--gold);
+    font-size: 8px;
+    opacity: 0.7;
+  }
+
+  /* QR section inside delivery card */
+  .qr-display {
+    padding: 0 32px 32px;
     text-align: center;
     position: relative;
-    border: 1px solid var(--border);
   }
   .qr-display .qr-frame {
     display: inline-block;
@@ -370,75 +445,18 @@
     margin-top: 4px;
   }
 
-  /* ============ EMAIL SUCCESS CARD ============ */
-  .email-success-card {
-    background: var(--card);
-    border-radius: 2px;
-    padding: 32px 36px 28px;
-    box-shadow: var(--shadow);
+  /* Sealed footer */
+  .result-footer-sealed {
     text-align: center;
-    position: relative;
-    border: 1px solid var(--border);
-    margin-bottom: 20px;
-    overflow: hidden;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px dashed var(--border);
   }
-  .email-success-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0; right: 0;
-    height: 3px;
-    background: var(--accent);
-    opacity: 0.6;
-  }
-  .email-success-card .stamp-icon {
-    font-size: 40px;
-    margin-bottom: 14px;
-    display: inline-block;
-    opacity: 0.85;
-  }
-  .email-success-card .success-title {
-    font-family: var(--font-art);
-    font-size: 22px;
-    color: var(--ink);
-    letter-spacing: 4px;
-    margin-bottom: 16px;
-  }
-  .email-success-card .delivery-detail {
-    font-size: 13px;
-    color: var(--ink-light);
-    line-height: 1.9;
-    margin-bottom: 6px;
-  }
-  .email-success-card .delivery-detail strong {
-    color: var(--ink);
-    font-weight: 500;
-  }
-  .email-success-card .recipient-line {
+  .result-footer-sealed .sealed-hint {
     font-size: 12px;
     color: var(--ink-light);
-    letter-spacing: 0.5px;
-    margin-top: 10px;
-    padding-top: 10px;
-    border-top: 1px dashed var(--border);
-    display: inline-block;
-  }
-  .email-success-card .divider-ornament {
-    margin: 14px auto;
-    width: 40px;
-    height: 1px;
-    background: var(--border);
-    position: relative;
-  }
-  .email-success-card .divider-ornament::before {
-    content: '◆';
-    position: absolute;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    font-size: 8px;
-    color: var(--accent);
-    background: var(--card);
-    padding: 0 6px;
+    margin-bottom: 10px;
+    letter-spacing: 1px;
   }
 
   /* ============ READ MODE ============ */
@@ -641,6 +659,11 @@
     0%, 100% { transform: translateY(0); }
     50% { transform: translateY(-6px); }
   }
+  @keyframes sealStamp {
+    0% { opacity: 0; transform: scale(1.6) rotate(-15deg); }
+    60% { opacity: 1; transform: scale(0.92) rotate(-8deg); }
+    100% { opacity: 1; transform: scale(1) rotate(0deg); }
+  }
 
   /* ============ PRINT STYLES ============ */
   @media print {
@@ -670,15 +693,102 @@
     }
   }
 
-  /* ============ RESPONSIVE ============ */
+  /* ============ RESPONSIVE (mobile-first friendly) ============ */
+
+  /* Tablet & small desktop */
+  @media (max-width: 768px) {
+    body { padding: 32px 20px; }
+    .app-container { max-width: 520px; }
+  }
+
+  /* Mobile */
   @media (max-width: 480px) {
-    body { padding: 20px 16px; }
-    .app-header h1 { font-size: 28px; letter-spacing: 4px; }
-    .paper { padding: 28px 24px 24px; }
-    .letter-paper { padding: 36px 28px; }
-    .letter-paper .letter-title { font-size: 20px; }
+    body { padding: 20px 14px; }
+    .app-header { margin-bottom: 28px; }
+    .app-header .envelope-icon { font-size: 36px; margin-bottom: 10px; }
+    .app-header h1 { font-size: 26px; letter-spacing: 4px; }
+    .app-header .sub { font-size: 12px; }
+    .app-header .divider { width: 48px; margin-top: 12px; }
+
+    .paper { padding: 28px 22px 24px; }
+    .field-group { margin-bottom: 20px; }
+    .field-group label { font-size: 11px; letter-spacing: 1.5px; margin-bottom: 6px; }
+    .field-group input,
+    .field-group textarea {
+      font-size: 16px; /* prevent iOS zoom */
+      padding: 6px 2px;
+      line-height: 1.7;
+    }
+    .field-group textarea { min-height: 110px; line-height: 28px; }
+    .char-hint { font-size: 10px; }
+
+    .theme-row { gap: 10px; margin: 6px 0 20px; }
+    .theme-dot { width: 22px; height: 22px; }
+
+    .delivery-row { margin: 6px 0 20px; }
+    .delivery-options { gap: 6px; }
+    .delivery-option { padding: 6px 11px; font-size: 12px; }
+
+    .btn { padding: 13px 24px; font-size: 14px; letter-spacing: 1px; }
+    .btn-outline { padding: 10px 14px; font-size: 12px; }
+
+    /* Unified delivery card on mobile */
+    .delivery-card-head { padding: 24px 20px 12px; }
+    .delivery-card-head .wax-seal { width: 44px; height: 44px; margin-bottom: 10px; }
+    .delivery-card-head .success-title { font-size: 19px; letter-spacing: 3px; }
+    .delivery-card-head .success-sub { font-size: 10px; }
+    .delivery-card-head .delivery-detail { font-size: 13px; margin-top: 10px; }
+    .delivery-card-head .delivery-detail strong { font-size: 14px; }
+    .email-success-card { padding: 0 20px 10px; }
+    .email-success-card .recipient-line { font-size: 12px; }
+    .delivery-divider { padding: 4px 20px 12px; }
+    .qr-display { padding: 0 20px 24px; }
+    .qr-display .qr-frame { padding: 12px; }
+    .qr-display .qr-label { font-size: 12px; margin-top: 12px; }
+    .qr-display .qr-hint { font-size: 10px; }
+
+    /* Action buttons: 2 per row on mobile */
+    .action-row { flex-wrap: wrap; gap: 8px; }
+    .action-row .btn { flex: 1 1 calc(50% - 4px) !important; min-width: 0; padding: 10px 8px; font-size: 12px; }
+
+    .result-footer-sealed { margin-top: 16px; padding-top: 14px; }
+    .result-footer-sealed .sealed-hint { font-size: 11px; margin-bottom: 8px; }
+
+    .letter-paper { padding: 32px 22px 28px; max-width: 100%; }
+    .letter-paper .letter-title { font-size: 19px; letter-spacing: 3px; margin-bottom: 24px; }
     .letter-paper .letter-body { font-size: 15px; line-height: 30px; }
-    .print-card { width: 100%; max-width: 340px; }
+    .letter-paper .letter-close { margin-top: 32px; padding-top: 18px; }
+
+    .print-card { width: 100%; max-width: 340px; padding: 28px 22px 24px; }
+  }
+
+  /* Very small phones */
+  @media (max-width: 360px) {
+    body { padding: 16px 10px; }
+    .app-header h1 { font-size: 22px; letter-spacing: 3px; }
+    .paper { padding: 22px 16px 20px; }
+    .field-group input,
+    .field-group textarea { font-size: 15px; }
+    .delivery-option { padding: 5px 9px; font-size: 11px; }
+    /* Stack action buttons single column on tiny screens */
+    .action-row .btn { flex: 1 1 100% !important; }
+    .delivery-card-head { padding: 20px 16px 10px; }
+    .email-success-card { padding: 0 16px 8px; }
+    .qr-display { padding: 0 16px 20px; }
+    .letter-paper { padding: 26px 16px 24px; }
+    .letter-paper .letter-title { font-size: 17px; }
+    .envelope-waiting .waiting-title { font-size: 20px; letter-spacing: 2px; }
+    .envelope-waiting .countdown-display { font-size: 40px; letter-spacing: 2px; }
+  }
+
+  /* Waiting stage responsive */
+  @media (max-width: 480px) {
+    .envelope-waiting { padding: 32px 20px; }
+    .envelope-waiting .envelope-icon-big { font-size: 52px; margin-bottom: 24px; }
+    .envelope-waiting .waiting-title { font-size: 22px; letter-spacing: 3px; }
+    .envelope-waiting .waiting-sub { font-size: 13px; margin-bottom: 28px; }
+    .envelope-waiting .countdown-display { font-size: 48px; letter-spacing: 3px; }
+    .countdown-wrap { padding: 20px 0; }
   }
 
   /* Error state */
@@ -774,46 +884,63 @@
   .envelope-waiting {
     text-align: center;
     padding: 40px 24px;
+    max-width: 420px;
   }
   .envelope-waiting .envelope-icon-big {
-    font-size: 72px;
+    font-size: 64px;
     display: block;
-    margin-bottom: 24px;
+    margin-bottom: 32px;
     animation: envelopeFloat 3s ease-in-out infinite;
+    opacity: 0.9;
   }
   .envelope-waiting .waiting-title {
     font-family: var(--font-art);
-    font-size: 22px;
+    font-size: 26px;
     color: var(--ink);
-    letter-spacing: 3px;
-    margin-bottom: 12px;
+    letter-spacing: 4px;
+    margin-bottom: 10px;
+    line-height: 1.4;
   }
   .envelope-waiting .waiting-sub {
     font-family: var(--font-serif);
     font-size: 14px;
     color: var(--ink-light);
     line-height: 1.8;
-    margin-bottom: 28px;
-  }
-  .envelope-waiting .countdown-display {
-    font-family: var(--font-display);
-    font-size: 32px;
-    color: var(--accent);
-    letter-spacing: 2px;
-    margin-bottom: 8px;
-  }
-  .envelope-waiting .countdown-label {
-    font-size: 12px;
-    color: var(--ink-light);
+    margin-bottom: 36px;
     letter-spacing: 1px;
   }
-  .envelope-waiting .delivery-info {
-    margin-top: 32px;
-    padding-top: 20px;
-    border-top: 1px dashed var(--border);
-    font-size: 12px;
+
+  .countdown-wrap {
+    position: relative;
+    padding: 24px 0;
+  }
+  .countdown-wrap::before,
+  .countdown-wrap::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60%;
+    max-width: 160px;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border), transparent);
+  }
+  .countdown-wrap::before { top: 0; }
+  .countdown-wrap::after { bottom: 0; }
+
+  .envelope-waiting .countdown-display {
+    font-family: var(--font-display);
+    font-size: 56px;
+    font-weight: 300;
+    color: var(--accent);
+    letter-spacing: 4px;
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+  .envelope-waiting .countdown-label {
+    font-size: 13px;
     color: var(--ink-light);
-    letter-spacing: 0.5px;
+    letter-spacing: 2px;
   }
 
   /* Open button stage */
@@ -956,25 +1083,42 @@
 
     <!-- Result Section (hidden until generation) -->
     <div class="result-section" id="resultSection">
-      <div class="result-header">
-        <h2 id="resultTitle">信已备好</h2>
-        <p id="resultSub">将下方二维码保存或打印，送给对方</p>
-      </div>
+      <!-- Unified delivery card: success info + QR merged into one -->
+      <div class="delivery-card" id="deliveryCard">
+        <!-- Wax seal + title (always visible) -->
+        <div class="delivery-card-head">
+          <div class="wax-seal" aria-hidden="true">
+            <svg viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <circle cx="28" cy="28" r="24" fill="currentColor" opacity="0.92"/>
+              <circle cx="28" cy="28" r="20" stroke="rgba(255,255,255,0.35)" stroke-width="1" fill="none"/>
+              <path d="M18 28 L25 35 L38 21" stroke="rgba(255,255,255,0.9)" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <h2 class="success-title" id="resultTitle">信已备好</h2>
+          <p class="success-sub" id="resultSub">将下方二维码保存或打印，送给对方</p>
+          <!-- Delivery time: moved up, red accent, shown in email mode -->
+          <div class="delivery-detail" id="emailDeliveryInfo" style="display:none;"></div>
+        </div>
 
-      <!-- Email success info (hidden by default) -->
-      <div class="email-success-card" id="emailSuccessInfo" style="display:none;">
-        <div class="stamp-icon">✉️</div>
-        <div class="success-title">信件已投递</div>
-        <div class="divider-ornament"></div>
-        <div class="delivery-detail" id="emailDeliveryInfo"></div>
-        <div class="recipient-line" id="emailDeliveryRecipient"></div>
-      </div>
+        <!-- Email recipient (hidden if no email) -->
+        <div class="email-success-card" id="emailSuccessInfo" style="display:none;">
+          <div class="recipient-line" id="emailDeliveryRecipient"></div>
+        </div>
 
-      <div class="qr-display" id="qrDisplay">
-        <div class="qr-frame" id="qrFrame"></div>
-        <div class="qr-label" id="qrLabel">致 · 亲爱的朋友</div>
-        <div class="qr-hint">扫一扫，信会自己展开</div>
-        <div class="qr-delivery-hint" id="qrDeliveryHint"></div>
+        <!-- Ornamental divider between sections -->
+        <div class="delivery-divider" aria-hidden="true">
+          <span class="delivery-divider-line"></span>
+          <span class="delivery-divider-diamond">◆</span>
+          <span class="delivery-divider-line"></span>
+        </div>
+
+        <!-- QR code section (always visible) -->
+        <div class="qr-display" id="qrDisplay">
+          <div class="qr-frame" id="qrFrame"></div>
+          <div class="qr-label" id="qrLabel">致 · 亲爱的朋友</div>
+          <div class="qr-hint">扫一扫，信会自己展开</div>
+          <div class="qr-delivery-hint" id="qrDeliveryHint"></div>
+        </div>
       </div>
 
       <div class="action-row">
@@ -989,10 +1133,8 @@
         </button>
       </div>
 
-      <div style="text-align:center; margin-top:20px; padding-top:16px; border-top:1px dashed var(--border);">
-        <div style="font-size:12px; color:var(--ink-light); margin-bottom:10px; letter-spacing:1px;">
-          这封信已封存，内容不可修改
-        </div>
+      <div class="result-footer-sealed">
+        <div class="sealed-hint">这封信已封存，内容不可修改</div>
         <button class="btn btn-outline" id="btnDeleteLetter" style="color:var(--accent); border-color:var(--accent-soft);">
           销毁这封信
         </button>
@@ -1006,11 +1148,12 @@
     <div class="waiting-stage" id="waitingStage">
       <div class="envelope-waiting">
         <span class="envelope-icon-big">✉️</span>
-        <div class="waiting-title">这封信正在穿越山海</div>
-        <div class="waiting-sub" id="waitingSub">费劲力气，正在向你赶来</div>
-        <div class="countdown-display" id="countdownDisplay">--:--:--</div>
-        <div class="countdown-label">后送达</div>
-        <div class="delivery-info" id="deliveryInfo"></div>
+        <div class="waiting-title">这封信踏遍万水千山</div>
+        <div class="waiting-sub" id="waitingSub">带着满心热忱，奔赴向你</div>
+        <div class="countdown-wrap">
+          <div class="countdown-display" id="countdownDisplay">--:--:--</div>
+          <div class="countdown-label">后送达</div>
+        </div>
       </div>
     </div>
 
@@ -1116,6 +1259,7 @@ const resultSection = document.getElementById('resultSection');
 const qrFrame = document.getElementById('qrFrame');
 const qrLabel = document.getElementById('qrLabel');
 const qrDisplay = document.getElementById('qrDisplay');
+const deliveryCard = document.getElementById('deliveryCard');
 const printOverlay = document.getElementById('printOverlay');
 const printHeader = document.getElementById('printHeader');
 const printQr = document.getElementById('printQr');
@@ -1131,11 +1275,9 @@ const emailDeliveryRecipient = document.getElementById('emailDeliveryRecipient')
 const resultTitle = document.getElementById('resultTitle');
 const resultSub = document.getElementById('resultSub');
 const waitingStage = document.getElementById('waitingStage');
-const waitingSub = document.getElementById('waitingSub');
 const openStage = document.getElementById('openStage');
 const letterStage = document.getElementById('letterStage');
 const countdownDisplay = document.getElementById('countdownDisplay');
-const deliveryInfo = document.getElementById('deliveryInfo');
 const readFooter = document.getElementById('readFooter');
 
 // ============ THEME SWITCHING ============
@@ -1298,7 +1440,9 @@ btnGenerate.addEventListener('click', async () => {
     if (hasEmail) {
       // ============ EMAIL MODE ============
       emailSuccessInfo.style.display = 'block';
+      emailDeliveryInfo.style.display = 'block';
       resultTitle.textContent = '信件已投递';
+      resultSub.textContent = '邮件通知已发出，下方二维码亦可当面赠送';
       const recipient = letter.to || '亲爱的朋友';
 
       if (openAt) {
@@ -1307,14 +1451,15 @@ btnGenerate.addEventListener('click', async () => {
         const dd = d.getDate().toString().padStart(2, '0');
         const hh = d.getHours().toString().padStart(2, '0');
         const mi = d.getMinutes().toString().padStart(2, '0');
-        emailDeliveryInfo.innerHTML = `邮件通知已发送<br>信件将于 <strong>${mm}月${dd}日 ${hh}:${mi}</strong> 解锁`;
+        emailDeliveryInfo.innerHTML = `信件将于 <strong>${mm}月${dd}日 ${hh}:${mi}</strong> 解锁`;
       } else {
-        emailDeliveryInfo.innerHTML = '邮件通知已发送<br>信件现在就可以打开';
+        emailDeliveryInfo.innerHTML = '信件现在就可以打开';
       }
       emailDeliveryRecipient.textContent = `致 ${recipient}  ·  ${email}`;
     } else {
       // ============ QR MODE (existing flow) ============
       emailSuccessInfo.style.display = 'none';
+      emailDeliveryInfo.style.display = 'none';
       resultTitle.textContent = '信已备好';
       resultSub.textContent = '将下方二维码保存或打印，送给对方';
     }
@@ -1337,14 +1482,19 @@ btnGenerate.addEventListener('click', async () => {
     const recipient = letter.to || '亲爱的朋友';
     qrLabel.textContent = '致 ' + recipient;
 
-    if (openAt) {
+    if (openAt && !hasEmail) {
+      // 只有 QR 模式才在二维码下方显示送达时间；邮件模式已用 emailDeliveryInfo 显示
       qrDeliveryHint.textContent = '🕐 ' + formatDeliveryHint(openAt);
+      qrDeliveryHint.style.display = 'block';
     } else {
-      qrDeliveryHint.textContent = '';
+      qrDeliveryHint.style.display = 'none';
     }
 
-    qrDisplay.style.background = themes[currentTheme].card;
-    qrDisplay.style.borderColor = themes[currentTheme].border;
+    // Apply theme to the unified delivery card
+    if (deliveryCard) {
+      deliveryCard.style.background = themes[currentTheme].card;
+      deliveryCard.style.borderColor = themes[currentTheme].border;
+    }
 
     resultSection.classList.add('show');
     resultSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1392,7 +1542,9 @@ document.getElementById('btnNewLetter').addEventListener('click', () => {
   currentLetterData = null;
   currentOpenAt = null;
   qrDeliveryHint.textContent = '';
+  qrDeliveryHint.style.display = '';
   emailSuccessInfo.style.display = 'none';
+  emailDeliveryInfo.style.display = 'none';
   qrDisplay.style.display = '';
   document.getElementById('btnCopyLink').style.display = '';
   document.querySelector('[onclick="openPrintOverlay()"]').style.display = '';
@@ -1441,10 +1593,15 @@ document.getElementById('btnDeleteLetter').addEventListener('click', async () =>
       currentLetterData = null;
       currentOpenAt = null;
       qrDeliveryHint.textContent = '';
+      qrDeliveryHint.style.display = '';
       emailSuccessInfo.style.display = 'none';
+      emailDeliveryInfo.style.display = 'none';
       qrDisplay.style.display = '';
       document.getElementById('btnCopyLink').style.display = '';
       document.querySelector('[onclick="openPrintOverlay()"]').style.display = '';
+      // 恢复销毁按钮状态（否则下次显示结果时仍卡在"正在销毁..."）
+      btn.disabled = false;
+      btn.textContent = '销毁这封信';
       document.querySelectorAll('.delivery-option').forEach(b => b.classList.remove('active'));
       document.querySelector('.delivery-option[data-delivery="now"]').classList.add('active');
       deliveryDatetime.classList.remove('show');
@@ -1544,28 +1701,10 @@ async function showReadMode(token, fromEmail) {
     // Locked: not yet time to open
     if (data.locked && data.openAt) {
       const openDate = new Date(data.openAt);
-      const recipient = data.to || '亲爱的朋友';
-      const fromName = data.from || '匿名';
 
       if (waitingStage) waitingStage.classList.add('show');
       if (openStage) openStage.classList.remove('show');
       if (letterStage) letterStage.style.display = 'none';
-
-      if (fromEmail) {
-        if (waitingSub) {
-          const mm = (openDate.getMonth() + 1).toString().padStart(2, '0');
-          const dd = openDate.getDate().toString().padStart(2, '0');
-          const hh = openDate.getHours().toString().padStart(2, '0');
-          const mi = openDate.getMinutes().toString().padStart(2, '0');
-          waitingSub.textContent = `这封信将在 ${mm}月${dd}日 ${hh}:${mi} 解锁，到那时再来看看吧`;
-        }
-      } else {
-        if (waitingSub) waitingSub.textContent = '费劲力气，正在向你赶来';
-      }
-
-      if (deliveryInfo) {
-        deliveryInfo.textContent = `来自 ${fromName} 的信，致 ${recipient}`;
-      }
 
       function updateCountdown() {
         const now = new Date();
