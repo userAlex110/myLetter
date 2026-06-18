@@ -80,12 +80,11 @@
 
 | 任务 | Session ID | 时长 | 关键操作 |
 |------|-----------|------|---------|
-| 项目头脑风暴 | `6a324f2f0025f75d6fbb471d.6a32b2c0ff79de8c3d3918b6.6a32b2bffaf42d961712e342` | - | 创意构思与方向确定 |
-| 项目初始化配置 | `6a329c61b79aeffd3daa534a` | 17 min | 项目初始化、CLAUDE.md 配置 |
-| 后端架构 + MCP 配置 | `6a329dabb79aeffd3daa5416` | 14 min | CloudBase MCP 配置、后端架构设计 |
-| worktree 创建与信纸样式重构 | `6a33416bd64ba79ca15acc67` | 2.5 h | worktree 管理、信纸样式重构 |
-| **核心功能开发** | `6a334533d64ba79ca15accc1` | 1.5 h | **210 次 Read + 135 次 Edit + 56 次 RunCommand** |
-| 信纸样式 worktree 合并 | `6a3357ead64ba79ca15acf9f` | 40 min | letter-paper worktree、index.html 修改 |
+| 后端架构 + MCP 配置 | `.2311636645067236:94e170a73df1d750764ba0f8b1aee240_6a329dabb79aeffd3daa5416.6a329eceb79aeffd3daa5419.6a329ecdfbd0b784fa551971:Trae CN.T(2026/6/17 21:19:10)` | 14 min | CloudBase MCP 配置、后端架构设计 |
+| worktree 创建与信纸样式重构 | `.2311636645067236:eacbe175326ea008e4f7daffbb7e5913_6a33416bd64ba79ca15acc67.6a3342b7d64ba79ca15acc6a.6a3342b7ec7a4dabc44514bd:Trae CN.T(2026/6/18 08:58:31)` | 2.5 h | worktree 管理、信纸样式重构 |
+| **核心功能开发** | `.2311636645067236:d43c0160f19ae44264f620eb333b44bc_6a334533d64ba79ca15accc1.6a334706d64ba79ca15accc4.6a334706c4dcda1bd714b455:Trae CN.T(2026/6/18 09:16:54)` | 1.5 h | **210 次 Read + 135 次 Edit + 56 次 RunCommand** |
+| 打印卡片导出功能 | `.2311636645067236:f30f89d3a8e64dae06935d0aa2507cef_6a3357ead64ba79ca15acf9f.6a33585ad64ba79ca15acfa2.6a33585ac4dcda1bd714b461:Trae CN.T(2026/6/18 10:30:50)` | 40 min | 导出 JPEG/PNG 图片格式 |
+| 文档更新与版本迭代 | `.2311636645067236:05340b7e03813dd97fa903f38129f18e_6a33620a67569e5af09c85d6.6a33623067569e5af09c85d9.6a3362300f3378c71db22ad5:Trae CN.T(2026/6/18 11:12:48)` | - | README 更新、版本号定为 0.1 |
 
 > 💡 **Session ID 是什么？** 它是 TRAE 每段对话任务的唯一标识，用来证明作品确实由 TRAE 开发完成。双击 TRAE 的对话即可复制出来～
 >
