@@ -64,6 +64,15 @@ python3 -m http.server 8080   # 然后访问 http://localhost:8080
 
 **前端部署**：push 到 GitHub，Pages 自动更新。
 
+## Git 提交约定
+
+- **每次 commit 信息必须包含丰富的表情包（emoji），不可省略**。表情包要"多来一点"，与提交内容语义相关、视觉好看，开头与结尾都可加。
+- 推荐前缀 emoji 按类型：✨feat / 🐛fix / 📝docs / ♻️refactor / 🎨style / 🚀perf / 🔧chore / 🧪test / 🗑️remove
+- 示例：
+  - `✨feat: 新增 Email 定时投递 💌🚀📅`
+  - `🐛fix: 修复立即发送查询不到 🛠️🔧💡`
+  - `📝docs: 更新 README 至 v0.1 📚✨🔖`
+
 ## 邮件服务（Resend）
 
 - 发件域名 `letter@jixinletter.cn`（域名在阿里云购买），SDK `resend@^4.0.0`，Resend 区域 Tokyo（ap-northeast-1），免费额度 100 封/天。

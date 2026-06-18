@@ -1,6 +1,10 @@
 # 寄信 — 寄往未来的某个时刻
 
+> **当前版本：v0.1（Demo）**
+>
 > 一个极简的定时信件投递服务。写信，设置投递时间，通过 Email 自动送达对方。也保留二维码当面送信。信件 30 天后自动销毁。
+>
+> 目前仍处于 Demo 阶段，功能在 v0.1 内持续迭代，尚未进入 1.0 正式版。欢迎试用与反馈。
 
 ---
 
@@ -38,12 +42,14 @@ https://useralex110.github.io/myLetter
 ### 后端
 
 - **腾讯云 CloudBase**：云函数 + NoSQL 数据库
-- **三个云函数**：
-  - `saveLetter`（POST）— 保存信件，返回短 ID，支持 Email 字段
-  - `readLetter`（GET）— 根据 ID 读取信件，检查是否过期
+- **四个云函数**：
+  - `saveLetter`（POST）— 保存信件，返回短 ID，支持 Email 字段与定时投递
+  - `readLetter`（GET）— 根据 ID 读取信件，检查是否过期 / 是否到解锁时间
+  - `deleteLetter`（GET）— 销毁信件
   - `emailLetter`（定时触发器）— 每分钟轮询待发送信件，通过 Resend API 投递 Email
-- **邮件服务**：[Resend](https://resend.com) — 域名邮箱 `letter@letter.jixinletter.cn`，HTML + 纯文本双版本
-- **数据过期**：写入时记录 `expireAt`，读取时检查并自动清理
+- **邮件服务**：[Resend](https://resend.com) — 发件域名邮箱 `letter@jixinletter.cn`，HTML + 纯文本双版本
+- **定时投递机制**：saveLetter 立即落库（`sent:false`），emailLetter 每分钟轮询 `openAt <= now` 的信件发送，非延迟发送
+- **数据过期**：写入时记录 `expireAt`（创建 +30 天），读取时检查并自动清理
 
 ### 部署
 
@@ -191,7 +197,7 @@ Email 邮件采用 **全行内样式 + table 布局**，不使用 Flexbox、CSS 
 
 ### GET /readLetter?id={id}
 
-**响应（成功）：**
+**响应（成功，已到解锁时间）：**
 ```json
 {
   "ok": true,
@@ -203,10 +209,31 @@ Email 邮件采用 **全行内样式 + table 布局**，不使用 Flexbox、CSS 
 }
 ```
 
+**响应（未到解锁时间，locked）：**
+```json
+{
+  "ok": true,
+  "locked": true,
+  "openAt": "2026-05-23T09:00:00.000Z",
+  "to": "收信人",
+  "from": "署名",
+  "theme": "warm"
+}
+```
+
 **响应（过期或不存在）：**
 ```json
 {
   "error": "Letter not found or expired"
+}
+```
+
+### GET /deleteLetter?id={id}
+
+**响应：**
+```json
+{
+  "ok": true
 }
 ```
 
@@ -222,7 +249,7 @@ Email 邮件采用 **全行内样式 + table 布局**，不使用 Flexbox、CSS 
 | 后端 | 腾讯云 CloudBase 云函数（Node.js 18）|
 | 数据库 | CloudBase NoSQL（类 MongoDB）|
 | 邮件服务 | [Resend](https://resend.com) |
-| 发件域名 | `letter.jixinletter.cn`（SPF + DKIM + DMARC）|
+| 发件域名 | `jixinletter.cn`（SPF + DKIM + DMARC）|
 | 前端部署 | GitHub Pages |
 | 后端部署 | 腾讯云 CloudBase（上海节点）|
 
@@ -230,14 +257,14 @@ Email 邮件采用 **全行内样式 + table 布局**，不使用 Flexbox、CSS 
 
 ## 更新日志
 
+> 项目当前处于 **v0.1（Demo）** 阶段，在 0.1 版本内持续迭代，待核心体验稳定后再进入 1.0。
+
 | 日期 | 版本 | 说明 |
 |------|------|------|
-| 2026-05-22 | v2.1 | Email 定时投递上线：Resend 集成、域名 `jixinletter.cn`、邮件模板兼容国内邮箱 |
-| 2026-05-09 | v2.0 | 后端迁移至腾讯云 CloudBase，解决国内网络问题 |
-| 2026-05-09 | v1.2 | 修复 CloudBase 数据写入格式兼容问题 |
-| 2026-05-09 | v1.1 | 添加自动展开文本框、优化移动端体验 |
-| 2026-05-09 | v1.0 | 切换至 Cloudflare Workers 后端，支持任意长度信件 |
-| 早期 | v0.1 | 初始版本，本地存储 + Base64 URL 编码 |
+| 2026-06-18 | v0.1 | 文档体系对齐当前实现：修正云函数数量、发件邮箱、定时字段说明；明确 Demo 定位 |
+| 2026-05-22 | v0.1-dev | Email 定时投递上线：Resend 集成、域名 `jixinletter.cn`、邮件模板兼容国内邮箱；修复立即发送查询、依赖缺失、saveLetter 旧版等问题 |
+| 2026-05-09 | v0.1-dev | 后端迁移至腾讯云 CloudBase，解决国内网络问题；修复数据写入格式兼容；优化移动端体验 |
+| 早期 | v0.1-dev | 初始版本，本地存储 + Base64 URL 编码 |
 
 ---
 
