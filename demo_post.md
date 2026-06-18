@@ -80,6 +80,7 @@
 
 | 任务 | Session ID | 时长 | 关键操作 |
 |------|-----------|------|---------|
+| 项目头脑风暴 | `6a324f2f0025f75d6fbb471d.6a32b2c0ff79de8c3d3918b6.6a32b2bffaf42d961712e342` | - | 创意构思与方向确定 |
 | 项目初始化配置 | `6a329c61b79aeffd3daa534a` | 17 min | 项目初始化、CLAUDE.md 配置 |
 | 后端架构 + MCP 配置 | `6a329dabb79aeffd3daa5416` | 14 min | CloudBase MCP 配置、后端架构设计 |
 | worktree 创建与信纸样式重构 | `6a33416bd64ba79ca15acc67` | 2.5 h | worktree 管理、信纸样式重构 |
