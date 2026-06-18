@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>寄信 — 寄往未来的某个时刻</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html-to-image/1.11.11/html-to-image.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=ZCOOL+XiaoWei&display=swap" rel="stylesheet">
 <style>
@@ -432,13 +433,6 @@
   .qr-display .qr-frame img {
     display: block;
   }
-  .qr-display .qr-label {
-    font-family: var(--font-serif);
-    font-size: 13px;
-    color: var(--ink);
-    margin-top: 16px;
-    letter-spacing: 1px;
-  }
   .qr-display .qr-hint {
     font-size: 11px;
     color: var(--ink-light);
@@ -560,76 +554,6 @@
     letter-spacing: 0.5px;
   }
 
-  /* ============ PRINT OVERLAY ============ */
-  .print-overlay {
-    display: none;
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.6);
-    z-index: 100;
-    justify-content: center;
-    align-items: center;
-    padding: 20px;
-  }
-  .print-overlay.show {
-    display: flex;
-  }
-
-  .print-card {
-    background: #fff;
-    width: 360px;
-    padding: 32px;
-    border-radius: 3px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    text-align: center;
-    position: relative;
-    border: 1px solid #d0c8bc;
-  }
-  .print-card .print-header {
-    font-family: var(--font-art);
-    font-size: 18px;
-    color: #3d322b;
-    margin-bottom: 4px;
-    letter-spacing: 3px;
-  }
-  .print-card .print-sub {
-    font-family: var(--font-serif);
-    font-size: 11px;
-    color: #8b7a6b;
-    margin-bottom: 20px;
-    letter-spacing: 1px;
-  }
-  .print-card .print-qr {
-    display: inline-block;
-    padding: 12px;
-    border: 1px solid #d0c8bc;
-    margin-bottom: 16px;
-  }
-  .print-card .print-footer {
-    font-size: 10px;
-    color: #a09080;
-    letter-spacing: 0.5px;
-    word-break: break-all;
-  }
-  .print-card .print-close {
-    position: absolute;
-    top: 8px; right: 12px;
-    font-size: 20px;
-    color: #8b7a6b;
-    cursor: pointer;
-    border: none;
-    background: none;
-    line-height: 1;
-  }
-  .print-card .print-close:hover { color: #3d322b; }
-
-  .print-actions-overlay {
-    display: flex;
-    gap: 10px;
-    margin-top: 16px;
-    justify-content: center;
-  }
-
   /* ============ ANIMATIONS ============ */
   @keyframes fadeIn {
     from { opacity: 0; }
@@ -663,34 +587,6 @@
     0% { opacity: 0; transform: scale(1.6) rotate(-15deg); }
     60% { opacity: 1; transform: scale(0.92) rotate(-8deg); }
     100% { opacity: 1; transform: scale(1) rotate(0deg); }
-  }
-
-  /* ============ PRINT STYLES ============ */
-  @media print {
-    body { background: #fff; padding: 0; }
-    .app-header,
-    .write-mode,
-    .read-mode,
-    .read-footer,
-    .print-actions-overlay,
-    .print-close,
-    .error-state {
-      display: none !important;
-    }
-    .print-overlay {
-      display: flex !important;
-      position: static;
-      background: none;
-      padding: 0;
-      justify-content: flex-start;
-      align-items: flex-start;
-    }
-    .print-card {
-      box-shadow: none;
-      border: 1px solid #ccc;
-      margin: 0 auto;
-      page-break-inside: avoid;
-    }
   }
 
   /* ============ RESPONSIVE (mobile-first friendly) ============ */
@@ -744,7 +640,6 @@
     .delivery-divider { padding: 4px 20px 12px; }
     .qr-display { padding: 0 20px 24px; }
     .qr-display .qr-frame { padding: 12px; }
-    .qr-display .qr-label { font-size: 12px; margin-top: 12px; }
     .qr-display .qr-hint { font-size: 10px; }
 
     /* Action buttons: 2 per row on mobile */
@@ -758,8 +653,6 @@
     .letter-paper .letter-title { font-size: 19px; letter-spacing: 3px; margin-bottom: 24px; }
     .letter-paper .letter-body { font-size: 15px; line-height: 30px; }
     .letter-paper .letter-close { margin-top: 32px; padding-top: 18px; }
-
-    .print-card { width: 100%; max-width: 340px; padding: 28px 22px 24px; }
   }
 
   /* Very small phones */
@@ -1115,15 +1008,14 @@
         <!-- QR code section (always visible) -->
         <div class="qr-display" id="qrDisplay">
           <div class="qr-frame" id="qrFrame"></div>
-          <div class="qr-label" id="qrLabel">致 · 亲爱的朋友</div>
           <div class="qr-hint">扫一扫，信会自己展开</div>
           <div class="qr-delivery-hint" id="qrDeliveryHint"></div>
         </div>
       </div>
 
       <div class="action-row">
-        <button class="btn btn-outline" onclick="openPrintOverlay()" style="flex:1">
-          打印卡片
+        <button class="btn btn-outline" id="btnSaveCard" style="flex:1">
+          保存卡片
         </button>
         <button class="btn btn-outline" id="btnCopyLink" style="flex:1">
           复制链接
@@ -1200,24 +1092,6 @@
     </button>
   </div>
 
-  <!-- ============ PRINT OVERLAY ============ -->
-  <div class="print-overlay" id="printOverlay">
-    <div class="print-card" id="printCard">
-      <button class="print-close" onclick="closePrintOverlay()">&times;</button>
-      <div class="print-header" id="printHeader">致 · 亲爱的朋友</div>
-      <div class="print-sub">扫描阅读这封隐藏的信</div>
-      <div class="print-qr" id="printQr"></div>
-      <div class="print-footer" id="printFooter"></div>
-      <div class="print-actions-overlay">
-        <button class="btn btn-primary" onclick="doPrint()" style="flex:1">
-          确认打印
-        </button>
-        <button class="btn btn-outline" onclick="closePrintOverlay()" style="flex:1">
-          取消
-        </button>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -1257,14 +1131,9 @@ const rEmail = document.getElementById('rEmail');
 const btnGenerate = document.getElementById('btnGenerate');
 const resultSection = document.getElementById('resultSection');
 const qrFrame = document.getElementById('qrFrame');
-const qrLabel = document.getElementById('qrLabel');
 const qrDisplay = document.getElementById('qrDisplay');
 const deliveryCard = document.getElementById('deliveryCard');
-const printOverlay = document.getElementById('printOverlay');
-const printHeader = document.getElementById('printHeader');
-const printQr = document.getElementById('printQr');
-const printFooter = document.getElementById('printFooter');
-const printCard = document.getElementById('printCard');
+const btnSaveCard = document.getElementById('btnSaveCard');
 const deliveryDatetime = document.getElementById('deliveryDatetime');
 const customDatetime = document.getElementById('customDatetime');
 const deliveryHint = document.getElementById('deliveryHint');
@@ -1436,14 +1305,19 @@ btnGenerate.addEventListener('click', async () => {
     btn.style.display = 'none';
 
     const readUrl = window.location.origin + window.location.pathname + '#token/' + currentToken;
+    const recipient = letter.to || '亲爱的朋友';
+
+    // 收信人提示统一放到二维码上方
+    emailSuccessInfo.style.display = 'block';
+    emailDeliveryRecipient.textContent = hasEmail
+      ? `致 ${recipient}  ·  ${email}`
+      : `致 ${recipient}`;
 
     if (hasEmail) {
       // ============ EMAIL MODE ============
-      emailSuccessInfo.style.display = 'block';
       emailDeliveryInfo.style.display = 'block';
       resultTitle.textContent = '信件已投递';
       resultSub.textContent = '邮件通知已发出，下方二维码亦可当面赠送';
-      const recipient = letter.to || '亲爱的朋友';
 
       if (openAt) {
         const d = new Date(openAt);
@@ -1455,10 +1329,8 @@ btnGenerate.addEventListener('click', async () => {
       } else {
         emailDeliveryInfo.innerHTML = '信件现在就可以打开';
       }
-      emailDeliveryRecipient.textContent = `致 ${recipient}  ·  ${email}`;
     } else {
       // ============ QR MODE (existing flow) ============
-      emailSuccessInfo.style.display = 'none';
       emailDeliveryInfo.style.display = 'none';
       resultTitle.textContent = '信已备好';
       resultSub.textContent = '将下方二维码保存或打印，送给对方';
@@ -1467,7 +1339,7 @@ btnGenerate.addEventListener('click', async () => {
     // ============ QR 码（两种模式都生成）===========
     qrDisplay.style.display = '';
     document.getElementById('btnCopyLink').style.display = '';
-    document.querySelector('[onclick="openPrintOverlay()"]').style.display = '';
+    btnSaveCard.style.display = '';
 
     qrFrame.innerHTML = '';
     new QRCode(qrFrame, {
@@ -1478,9 +1350,6 @@ btnGenerate.addEventListener('click', async () => {
       colorLight: '#ffffff',
       correctLevel: QRCode.CorrectLevel.M
     });
-
-    const recipient = letter.to || '亲爱的朋友';
-    qrLabel.textContent = '致 ' + recipient;
 
     if (openAt && !hasEmail) {
       // 只有 QR 模式才在二维码下方显示送达时间；邮件模式已用 emailDeliveryInfo 显示
@@ -1547,7 +1416,7 @@ document.getElementById('btnNewLetter').addEventListener('click', () => {
   emailDeliveryInfo.style.display = 'none';
   qrDisplay.style.display = '';
   document.getElementById('btnCopyLink').style.display = '';
-  document.querySelector('[onclick="openPrintOverlay()"]').style.display = '';
+  btnSaveCard.style.display = '';
   // Reset delivery options
   document.querySelectorAll('.delivery-option').forEach(b => b.classList.remove('active'));
   document.querySelector('.delivery-option[data-delivery="now"]').classList.add('active');
@@ -1598,7 +1467,7 @@ document.getElementById('btnDeleteLetter').addEventListener('click', async () =>
       emailDeliveryInfo.style.display = 'none';
       qrDisplay.style.display = '';
       document.getElementById('btnCopyLink').style.display = '';
-      document.querySelector('[onclick="openPrintOverlay()"]').style.display = '';
+      btnSaveCard.style.display = '';
       // 恢复销毁按钮状态（否则下次显示结果时仍卡在"正在销毁..."）
       btn.disabled = false;
       btn.textContent = '销毁这封信';
@@ -1618,49 +1487,42 @@ document.getElementById('btnDeleteLetter').addEventListener('click', async () =>
   }
 });
 
-// ============ PRINT OVERLAY ============
-function openPrintOverlay() {
-  if (!currentToken) return;
+// ============ SAVE CARD IMAGE ============
+async function saveCardImage() {
+  if (!deliveryCard) return;
 
-  printQr.innerHTML = '';
-  const readUrl = window.location.origin + window.location.pathname + '#token/' + currentToken;
-  new QRCode(printQr, {
-    text: readUrl,
-    width: 160,
-    height: 160,
-    colorDark: '#3d322b',
-    colorLight: '#ffffff',
-    correctLevel: QRCode.CorrectLevel.M
-  });
+  const originalText = btnSaveCard.textContent;
+  btnSaveCard.textContent = '生成中...';
+  btnSaveCard.disabled = true;
 
-  const recipient = currentLetterData?.to || '亲爱的朋友';
-  printHeader.textContent = '致 ' + recipient;
-  printFooter.textContent = readUrl;
+  try {
+    // 等待自定义字体和动画稳定后再截图
+    if (document.fonts && document.fonts.ready) {
+      await document.fonts.ready;
+    }
+    await new Promise(r => setTimeout(r, 200));
 
-  printOverlay.classList.add('show');
+    const dataUrl = await htmlToImage.toJpeg(deliveryCard, {
+      pixelRatio: 2,
+      backgroundColor: themes[currentTheme].card,
+      skipFonts: true,
+      quality: 0.95
+    });
+
+    const link = document.createElement('a');
+    const recipient = currentLetterData?.to || '亲爱的朋友';
+    link.download = `寄信卡片-${recipient}.jpg`;
+    link.href = dataUrl;
+    link.click();
+  } catch (err) {
+    alert('保存图片失败：' + err.message);
+  } finally {
+    btnSaveCard.textContent = originalText;
+    btnSaveCard.disabled = false;
+  }
 }
 
-function closePrintOverlay() {
-  printOverlay.classList.remove('show');
-}
-
-function doPrint() {
-  const actions = printCard.querySelector('.print-actions-overlay');
-  const closeBtn = printCard.querySelector('.print-close');
-  if (actions) actions.style.display = 'none';
-  if (closeBtn) closeBtn.style.display = 'none';
-
-  window.print();
-
-  setTimeout(() => {
-    if (actions) actions.style.display = '';
-    if (closeBtn) closeBtn.style.display = '';
-  }, 100);
-}
-
-printOverlay.addEventListener('click', (e) => {
-  if (e.target === printOverlay) closePrintOverlay();
-});
+btnSaveCard.addEventListener('click', saveCardImage);
 
 // ============ READ MODE ============
 async function showReadMode(token, fromEmail) {
